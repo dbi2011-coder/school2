@@ -1109,4 +1109,3101 @@
         }
 
         .time-type-selector label {
-            font-weight:
+            font-weight: 600;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        /* نافذة معاينة الملف */
+        .file-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-preview-modal.active {
+            display: flex;
+        }
+
+        .file-preview-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-light);
+            background: var(--light);
+        }
+
+        .file-preview-body {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-preview-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .file-info {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .no-preview {
+            text-align: center;
+            color: var(--gray);
+            padding: 40px;
+        }
+
+        .no-preview i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--gray-light);
+        }
+
+        @media (max-width: 768px) {
+            .admin-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .sidebar-nav {
+                display: flex;
+                overflow-x: auto;
+                padding: 15px;
+            }
+            
+            .nav-item {
+                margin-bottom: 0;
+                flex: 0 0 auto;
+            }
+            
+            .nav-item a {
+                border-right: none;
+                border-bottom: 3px solid transparent;
+                flex-direction: column;
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+            
+            .nav-item.active a {
+                border-right-color: transparent;
+                border-bottom-color: var(--accent);
+            }
+            
+            .nav-item i {
+                margin-left: 0;
+                margin-bottom: 5px;
+                font-size: 16px;
+            }
+            
+            .sidebar-toggle {
+                display: block;
+            }
+            
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab-btn {
+                border-bottom: none;
+                border-right: 2px solid transparent;
+            }
+            
+            .tab-btn.active {
+                border-right-color: var(--primary);
+            }
+
+            .schedule-grid {
+                grid-template-columns: 60px repeat(7, 1fr);
+                font-size: 10px;
+            }
+            
+            .schedule-slot {
+                padding: 5px;
+                min-height: 60px;
+            }
+
+            .multi-select-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .report-actions,
+            .table-actions {
+                flex-direction: column;
+            }
+
+            .schedule-time-table {
+                font-size: 12px;
+            }
+            
+            .schedule-time-table th,
+            .schedule-time-table td {
+                padding: 8px 4px;
+            }
+
+            .file-preview-content {
+                width: 95%;
+                height: 95vh;
+            }
+            
+            .preview-iframe {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="school-logo">
+                    <i class="fas fa-school"></i>
+                </div>
+                <h2>عمرو بن العاص</h2>
+                <p>نظام الإدارة المدرسية</p>
+            </div>
+
+            <ul class="sidebar-nav">
+                <li class="nav-item active">
+                    <a href="#" data-section="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>لوحة التحكم</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="files">
+                        <i class="fas fa-file-upload"></i>
+                        <span>رفع المحتوى</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="schedule">
+                        <i class="fas fa-table"></i>
+                        <span>جدول الحصص</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="staff">
+                        <i class="fas fa-users"></i>
+                        <span>إدارة الموظفين</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="calendar">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>التقويم الدراسي</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="work-schedule">
+                        <i class="fas fa-clock"></i>
+                        <span>توقيت الدوام والحصص</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" data-section="reports">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>التقارير والإحصائيات</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="main-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>لوحة مدير المدرسة</h1>
+                </div>
+                
+                <div class="header-right">
+                    <div class="user-menu">
+                        <div class="user-info">
+                            <div class="user-avatar">
+                                ع
+                            </div>
+                            <div class="user-details">
+                                <span class="user-name">أ/ عمر عبد الله الحماد</span>
+                                <span class="user-role">مدير المدرسة</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            تسجيل الخروج
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- التعديل الثاني: نقل لوحة التحكم الرئيسية فوق الأيقونات -->
+                <div class="dashboard-header">
+                    <h2><i class="fas fa-tachometer-alt"></i>لوحة التحكم الرئيسية</h2>
+                </div>
+                
+                <div class="stats-cards">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalStaff">0</h3>
+                            <p>إجمالي الموظفين</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalFiles">0</h3>
+                            <p>الملفات المرفوعة</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalTeachers">0</h3>
+                            <p>عدد المعلمين</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="content-sections">
+                    <!-- قسم لوحة التحكم -->
+                    <section id="dashboard-section" class="content-section active">
+                        <div class="section-body">
+                            <p>مرحبًا بك في مدرسة عمرو بن العاص الرقمية. استخدم القائمة الجانبية للوصول إلى الميزات المختلفة.</p>
+                        </div>
+                    </section>
+
+                    <!-- قسم رفع المحتوى -->
+                    <section id="files-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-file-upload"></i>رفع المحتوى</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="title">عنوان المحتوى</label>
+                                    <input type="text" id="title" class="form-control" placeholder="أدخل عنوان المحتوى">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="category">التصنيف</label>
+                                    <select id="category" class="form-control">
+                                        <option value="التعاميم الخارجية">التعاميم الخارجية</option>
+                                        <option value="التعاميم الداخلية">التعاميم الداخلية</option>
+                                        <option value="الأدلة واللوائح والأنظمة">الأدلة واللوائح والأنظمة</option>
+                                        <option value="الخطة التشغيلية">الخطة التشغيلية</option>
+                                        <option value="الخطة الفصلية">الخطة الفصلية</option>
+                                        <option value="خطة التحسين">خطة التحسين</option>
+                                        <option value="إنجازات المدرسة">إنجازات المدرسة</option>
+                                        <option value="أخرى">أخرى</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="note">ملاحظات (اختياري)</label>
+                                <textarea id="note" class="form-control" rows="3" placeholder="أضف ملاحظات حول المحتوى"></textarea>
+                            </div>
+
+                            <!-- تحديد المستهدفين -->
+                            <div class="target-selection">
+                                <div class="target-header">
+                                    <h3>تحديد المستهدفين</h3>
+                                    <small style="color: var(--gray);">يمكنك اختيار أكثر من طريقة</small>
+                                </div>
+                                
+                                <!-- التعديل الأول: إضافة خيارات تحديد جميع الموظفين وجميع المعلمين -->
+                                <div class="quick-selection" style="margin-bottom: 15px;">
+                                    <button class="btn btn-outline btn-sm" onclick="selectAllStaff()">
+                                        <i class="fas fa-users"></i>
+                                        تحديد جميع الموظفين
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="selectAllTeachers()">
+                                        <i class="fas fa-chalkboard-teacher"></i>
+                                        تحديد جميع المعلمين
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="clearAllSelections()">
+                                        <i class="fas fa-times"></i>
+                                        إلغاء الكل
+                                    </button>
+                                </div>
+                                
+                                <div class="target-tabs">
+                                    <button class="target-tab active" data-target="staff">بالاسم</button>
+                                    <button class="target-tab" data-target="subjects">بالمادة</button>
+                                    <button class="target-tab" data-target="classes">بالصف</button>
+                                </div>
+                                
+                                <div id="staffTarget" class="target-content active">
+                                    <div class="staff-checkboxes" id="staffCheckboxes">
+                                        <!-- سيتم ملؤها بالجافاسكريبت -->
+                                    </div>
+                                    <div class="selected-items" id="selectedStaff"></div>
+                                </div>
+                                
+                                <div id="subjectsTarget" class="target-content">
+                                    <div class="multi-select-grid">
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_english" value="انجليزي" onchange="toggleSubject(this)"><label for="subject_english">انجليزي</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_math" value="رياضيات" onchange="toggleSubject(this)"><label for="subject_math">رياضيات</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_science" value="علوم" onchange="toggleSubject(this)"><label for="subject_science">علوم</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_pe" value="بدنية" onchange="toggleSubject(this)"><label for="subject_pe">بدنية</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_arabic" value="عربي" onchange="toggleSubject(this)"><label for="subject_arabic">عربي</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_islamic" value="اسلامية" onchange="toggleSubject(this)"><label for="subject_islamic">اسلامية</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_social" value="اجتماعيات" onchange="toggleSubject(this)"><label for="subject_social">اجتماعيات</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_life" value="حياتية" onchange="toggleSubject(this)"><label for="subject_life">حياتية</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_art" value="فنية" onchange="toggleSubject(this)"><label for="subject_art">فنية</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="subject_digital" value="رقمية" onchange="toggleSubject(this)"><label for="subject_digital">رقمية</label></div>
+                                    </div>
+                                    <div class="selected-items" id="selectedSubjects"></div>
+                                </div>
+                                
+                                <div id="classesTarget" class="target-content">
+                                    <div class="multi-select-grid">
+                                        <div class="multi-select-item"><input type="checkbox" id="class_1_4" value="1/4" onchange="toggleClass(this)"><label for="class_1_4">1/4</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_2_4" value="2/4" onchange="toggleClass(this)"><label for="class_2_4">2/4</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_3_4" value="3/4" onchange="toggleClass(this)"><label for="class_3_4">3/4</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_4_4" value="4/4" onchange="toggleClass(this)"><label for="class_4_4">4/4</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_5_4" value="5/4" onchange="toggleClass(this)"><label for="class_5_4">5/4</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_1_5" value="1/5" onchange="toggleClass(this)"><label for="class_1_5">1/5</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_2_5" value="2/5" onchange="toggleClass(this)"><label for="class_2_5">2/5</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_3_5" value="3/5" onchange="toggleClass(this)"><label for="class_3_5">3/5</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_4_5" value="4/5" onchange="toggleClass(this)"><label for="class_4_5">4/5</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_5_5" value="5/5" onchange="toggleClass(this)"><label for="class_5_5">5/5</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_1_6" value="1/6" onchange="toggleClass(this)"><label for="class_1_6">1/6</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_2_6" value="2/6" onchange="toggleClass(this)"><label for="class_2_6">2/6</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_3_6" value="3/6" onchange="toggleClass(this)"><label for="class_3_6">3/6</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_4_6" value="4/6" onchange="toggleClass(this)"><label for="class_4_6">4/6</label></div>
+                                        <div class="multi-select-item"><input type="checkbox" id="class_5_6" value="5/6" onchange="toggleClass(this)"><label for="class_5_6">5/6</label></div>
+                                    </div>
+                                    <div class="selected-items" id="selectedClasses"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- إضافة حقل رفع الملفات -->
+                            <div class="form-group">
+                                <label for="fileUpload">رفع ملف (اختياري)</label>
+                                <input type="file" id="fileUpload" class="form-control">
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="addFile()">
+                                <i class="fas fa-upload"></i>
+                                رفع المحتوى
+                            </button>
+
+                            <!-- عرض الملفات المرفوعة -->
+                            <div class="uploaded-files">
+                                <h3>الملفات المرفوعة</h3>
+                                <div id="uploadedFilesList"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- قسم جدول الحصص -->
+                    <section id="schedule-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-table"></i>جدول الحصص</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="teacher-selector">
+                                <div class="form-group">
+                                    <label for="scheduleTeacher">اختر الموظف (معلم)</label>
+                                    <select id="scheduleTeacher" class="form-control" onchange="loadTeacherSchedule()">
+                                        <option value="">اختر الموظف</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="schedule-actions">
+                                <button class="btn btn-outline" onclick="clearSchedule()">
+                                    <i class="fas fa-trash"></i>
+                                    تفريغ الجدول بالكامل
+                                </button>
+                            </div>
+                            
+                            <div class="schedule-container">
+                                <div class="schedule-grid" id="scheduleGrid"></div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- قسم إدارة الموظفين -->
+                    <section id="staff-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-users"></i>إدارة الموظفين</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="staffName">اسم الموظف</label>
+                                    <input type="text" id="staffName" class="form-control" placeholder="أدخل الاسم الكامل">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="staffId">رقم الهوية</label>
+                                    <input type="text" id="staffId" class="form-control" placeholder="أدخل رقم الهوية">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="staffPhone">رقم الجوال</label>
+                                    <input type="text" id="staffPhone" class="form-control" placeholder="أدخل رقم الجوال">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>الوظائف</label>
+                                <div class="multi-select-container">
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_teacher" value="معلم" onchange="toggleJob(this)"><label for="job_teacher">معلم</label></div>
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_deputy" value="وكيل" onchange="toggleJob(this)"><label for="job_deputy">وكيل</label></div>
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_guide" value="موجه طلابي" onchange="toggleJob(this)"><label for="job_guide">موجه طلابي</label></div>
+                                    <!-- إضافة الوظائف الجديدة -->
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_admin" value="إداري" onchange="toggleJob(this)"><label for="job_admin">إداري</label></div>
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_health" value="موجه صحي" onchange="toggleJob(this)"><label for="job_health">موجه صحي</label></div>
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_activity" value="رائد نشاط" onchange="toggleJob(this)"><label for="job_activity">رائد نشاط</label></div>
+                                    <div class="multi-select-checkbox"><input type="checkbox" id="job_learning" value="معلم صعوبات التعلم" onchange="toggleJob(this)"><label for="job_learning">معلم صعوبات التعلم</label></div>
+                                </div>
+                                <div class="selected-items" id="selectedJobs"></div>
+                            </div>
+
+                            <!-- تفاصيل المعلم -->
+                            <div id="teacherDetails" class="teacher-details">
+                                <h4>تفاصيل التدريس (للمعلمين فقط)</h4>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label>المواد الدراسية</label>
+                                        <div class="multi-select-grid">
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_english_teacher" value="انجليزي" onchange="toggleTeacherSubject(this)"><label for="subject_english_teacher">انجليزي</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_math_teacher" value="رياضيات" onchange="toggleTeacherSubject(this)"><label for="subject_math_teacher">رياضيات</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_science_teacher" value="علوم" onchange="toggleTeacherSubject(this)"><label for="subject_science_teacher">علوم</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_pe_teacher" value="بدنية" onchange="toggleTeacherSubject(this)"><label for="subject_pe_teacher">بدنية</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_arabic_teacher" value="عربي" onchange="toggleTeacherSubject(this)"><label for="subject_arabic_teacher">عربي</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_islamic_teacher" value="اسلامية" onchange="toggleTeacherSubject(this)"><label for="subject_islamic_teacher">اسلامية</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_social_teacher" value="اجتماعيات" onchange="toggleTeacherSubject(this)"><label for="subject_social_teacher">اجتماعيات</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_life_teacher" value="حياتية" onchange="toggleTeacherSubject(this)"><label for="subject_life_teacher">حياتية</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_art_teacher" value="فنية" onchange="toggleTeacherSubject(this)"><label for="subject_art_teacher">فنية</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_digital_teacher" value="رقمية" onchange="toggleTeacherSubject(this)"><label for="subject_digital_teacher">رقمية</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_wait1_teacher" value="منتظر 1" onchange="toggleTeacherSubject(this)"><label for="subject_wait1_teacher">منتظر 1</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_wait2_teacher" value="منتظر 2" onchange="toggleTeacherSubject(this)"><label for="subject_wait2_teacher">منتظر 2</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_wait3_teacher" value="منتظر 3" onchange="toggleTeacherSubject(this)"><label for="subject_wait3_teacher">منتظر 3</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_wait4_teacher" value="منتظر 4" onchange="toggleTeacherSubject(this)"><label for="subject_wait4_teacher">منتظر 4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_wait5_teacher" value="منتظر 5" onchange="toggleTeacherSubject(this)"><label for="subject_wait5_teacher">منتظر 5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="subject_activity_teacher" value="نشاط" onchange="toggleTeacherSubject(this)"><label for="subject_activity_teacher">نشاط</label></div>
+                                        </div>
+                                        <div class="selected-items" id="selectedTeacherSubjects"></div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label>الصفوف الدراسية</label>
+                                        <div class="multi-select-grid">
+                                            <div class="multi-select-item"><input type="checkbox" id="class_1_4_teacher" value="1/4" onchange="toggleTeacherClass(this)"><label for="class_1_4_teacher">1/4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_2_4_teacher" value="2/4" onchange="toggleTeacherClass(this)"><label for="class_2_4_teacher">2/4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_3_4_teacher" value="3/4" onchange="toggleTeacherClass(this)"><label for="class_3_4_teacher">3/4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_4_4_teacher" value="4/4" onchange="toggleTeacherClass(this)"><label for="class_4_4_teacher">4/4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_5_4_teacher" value="5/4" onchange="toggleTeacherClass(this)"><label for="class_5_4_teacher">5/4</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_1_5_teacher" value="1/5" onchange="toggleTeacherClass(this)"><label for="class_1_5_teacher">1/5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_2_5_teacher" value="2/5" onchange="toggleTeacherClass(this)"><label for="class_2_5_teacher">2/5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_3_5_teacher" value="3/5" onchange="toggleTeacherClass(this)"><label for="class_3_5_teacher">3/5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_4_5_teacher" value="4/5" onchange="toggleTeacherClass(this)"><label for="class_4_5_teacher">4/5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_5_5_teacher" value="5/5" onchange="toggleTeacherClass(this)"><label for="class_5_5_teacher">5/5</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_1_6_teacher" value="1/6" onchange="toggleTeacherClass(this)"><label for="class_1_6_teacher">1/6</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_2_6_teacher" value="2/6" onchange="toggleTeacherClass(this)"><label for="class_2_6_teacher">2/6</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_3_6_teacher" value="3/6" onchange="toggleTeacherClass(this)"><label for="class_3_6_teacher">3/6</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_4_6_teacher" value="4/6" onchange="toggleTeacherClass(this)"><label for="class_4_6_teacher">4/6</label></div>
+                                            <div class="multi-select-item"><input type="checkbox" id="class_5_6_teacher" value="5/6" onchange="toggleTeacherClass(this)"><label for="class_5_6_teacher">5/6</label></div>
+                                        </div>
+                                        <div class="selected-items" id="selectedTeacherClasses"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="addStaff()">
+                                <i class="fas fa-user-plus"></i>
+                                إضافة موظف
+                            </button>
+                            
+                            <div class="table-container" style="margin-top: 30px;">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>الاسم</th>
+                                            <th>رقم الهوية</th>
+                                            <th>رقم الجوال</th>
+                                            <th>الوظائف</th>
+                                            <th>المواد/الصفوف</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- قسم التقويم الدراسي -->
+                    <section id="calendar-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-calendar-alt"></i>التقويم الدراسي</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="eventTitle">اسم الحدث</label>
+                                    <input type="text" id="eventTitle" class="form-control" placeholder="أدخل اسم الحدث">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="eventDate">تاريخ الحدث</label>
+                                    <input type="date" id="eventDate" class="form-control">
+                                </div>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="addEvent()">
+                                <i class="fas fa-plus"></i>
+                                إضافة حدث
+                            </button>
+                            
+                            <div class="events-list" id="eventsList"></div>
+                        </div>
+                    </section>
+
+                    <!-- قسم توقيت الدوام والحصص -->
+                    <section id="work-schedule-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-clock"></i>توقيت الدوام والحصص</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="time-type-selector">
+                                <label for="timeType">نوع التوقيت:</label>
+                                <select id="timeType" class="form-control" onchange="loadWorkSchedule()" style="max-width: 300px;">
+                                    <option value="summer">التوقيت الصيفي</option>
+                                    <option value="winter">التوقيت الشتوي</option>
+                                    <option value="ramadan">توقيت شهر رمضان المبارك</option>
+                                </select>
+                            </div>
+                            
+                            <div class="table-container">
+                                <table class="schedule-time-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">الفعالية</th>
+                                            <th style="width: 30%;">البداية</th>
+                                            <th style="width: 30%;">النهاية</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="workScheduleBody">
+                                        <!-- سيتم ملؤها بالجافاسكريبت -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <button class="add-row-btn" onclick="addWorkScheduleRow()">
+                                <i class="fas fa-plus"></i>
+                                إضافة صف جديد
+                            </button>
+                            
+                            <div class="action-buttons" style="margin-top: 20px;">
+                                <button class="btn btn-primary" onclick="saveWorkSchedule()">
+                                    <i class="fas fa-save"></i>
+                                    حفظ التوقيت
+                                </button>
+                                <button class="btn btn-outline" onclick="resetWorkSchedule()">
+                                    <i class="fas fa-redo"></i>
+                                    إعادة التعيين
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- قسم التقارير والإحصائيات -->
+                    <section id="reports-section" class="content-section">
+                        <div class="section-header">
+                            <h2><i class="fas fa-chart-bar"></i>التقارير والإحصائيات</h2>
+                        </div>
+                        <div class="section-body">
+                            <div class="tabs">
+                                <button class="tab-btn active" onclick="switchReportTab('reception')">تقارير الاستلام والاطلاع</button>
+                                <button class="tab-btn" onclick="switchReportTab('teachers')">الجدول العام للمعلمين</button>
+                                <button class="tab-btn" onclick="switchReportTab('classes')">جدول الفصول</button>
+                            </div>
+                            
+                            <!-- تقارير الاستلام والاطلاع -->
+                            <div id="reception-tab" class="tab-content active">
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="reportType">نوع التقرير</label>
+                                        <select id="reportType" class="form-control" onchange="toggleReportOptions()">
+                                            <option value="staff">عرض ملفات موظف معين</option>
+                                            <option value="file">عرض موظفين محتوى معين</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="staffReportOption" class="form-group">
+                                        <label for="reportStaff">اختر الموظف</label>
+                                        <select id="reportStaff" class="form-control">
+                                            <option value="">اختر الموظف</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div id="fileReportOption" class="form-group" style="display: none;">
+                                        <label for="reportFile">اختر المحتوى</label>
+                                        <select id="reportFile" class="form-control">
+                                            <option value="">اختر المحتوى</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn btn-primary" onclick="generateReport()">
+                                    <i class="fas fa-chart-bar"></i>
+                                    توليد التقرير
+                                </button>
+                                
+                                <div class="report-actions" style="margin-top: 20px; display: none;" id="reportActions">
+                                    <button class="btn btn-outline" onclick="printReport()">
+                                        <i class="fas fa-print"></i>
+                                        طباعة التقرير
+                                    </button>
+                                    <!-- تم حذف زر تصدير كـ PDF -->
+                                </div>
+                                
+                                <div id="reportResults" class="report-results" style="margin-top: 30px;"></div>
+                            </div>
+                            
+                            <!-- الجدول العام للمعلمين -->
+                            <div id="teachers-tab" class="tab-content">
+                                <div class="table-actions" style="margin-bottom: 20px;">
+                                    <button class="btn btn-primary" onclick="generateTeachersSchedule()">
+                                        <i class="fas fa-sync-alt"></i>
+                                        توليد الجدول
+                                    </button>
+                                    <button class="btn btn-outline" onclick="printTeachersSchedule()">
+                                        <i class="fas fa-print"></i>
+                                        طباعة الجدول
+                                    </button>
+                                </div>
+                                
+                                <div class="table-container" id="teachersScheduleContainer">
+                                    <div id="teachersSchedule"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- جدول الفصول -->
+                            <div id="classes-tab" class="tab-content">
+                                <div class="form-group">
+                                    <label for="classSelector">اختر الفصل</label>
+                                    <select id="classSelector" class="form-control" onchange="generateClassSchedule()">
+                                        <option value="">اختر الفصل</option>
+                                        <option value="1/4">1/4</option>
+                                        <option value="2/4">2/4</option>
+                                        <option value="3/4">3/4</option>
+                                        <option value="4/4">4/4</option>
+                                        <option value="5/4">5/4</option>
+                                        <option value="1/5">1/5</option>
+                                        <option value="2/5">2/5</option>
+                                        <option value="3/5">3/5</option>
+                                        <option value="4/5">4/5</option>
+                                        <option value="5/5">5/5</option>
+                                        <option value="1/6">1/6</option>
+                                        <option value="2/6">2/6</option>
+                                        <option value="3/6">3/6</option>
+                                        <option value="4/6">4/6</option>
+                                        <option value="5/6">5/6</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="table-actions" style="margin-bottom: 20px;">
+                                    <button class="btn btn-outline" onclick="printClassSchedule()">
+                                        <i class="fas fa-print"></i>
+                                        طباعة الجدول
+                                    </button>
+                                </div>
+                                
+                                <div class="table-container" id="classScheduleContainer">
+                                    <div id="classSchedule"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal لتعديل الحصة -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>تعديل الحصة</h3>
+                <button class="close-modal" onclick="closeScheduleModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="modalSubject">المادة</label>
+                    <select id="modalSubject" class="form-control">
+                        <option value="انجليزي">انجليزي</option>
+                        <option value="رياضيات">رياضيات</option>
+                        <option value="علوم">علوم</option>
+                        <option value="بدنية">بدنية</option>
+                        <option value="عربي">عربي</option>
+                        <option value="اسلامية">اسلامية</option>
+                        <option value="اجتماعيات">اجتماعيات</option>
+                        <option value="حياتية">حياتية</option>
+                        <option value="فنية">فنية</option>
+                        <option value="رقمية">رقمية</option>
+                        <option value="منتظر 1">منتظر 1</option>
+                        <option value="منتظر 2">منتظر 2</option>
+                        <option value="منتظر 3">منتظر 3</option>
+                        <option value="منتظر 4">منتظر 4</option>
+                        <option value="منتظر 5">منتظر 5</option>
+                        <option value="نشاط">نشاط</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="modalClass">الصف الدراسي</label>
+                    <select id="modalClass" class="form-control">
+                        <option value="1/4">1/4</option>
+                        <option value="2/4">2/4</option>
+                        <option value="3/4">3/4</option>
+                        <option value="4/4">4/4</option>
+                        <option value="5/4">5/4</option>
+                        <option value="1/5">1/5</option>
+                        <option value="2/5">2/5</option>
+                        <option value="3/5">3/5</option>
+                        <option value="4/5">4/5</option>
+                        <option value="5/5">5/5</option>
+                        <option value="1/6">1/6</option>
+                        <option value="2/6">2/6</option>
+                        <option value="3/6">3/6</option>
+                        <option value="4/6">4/6</option>
+                        <option value="5/6">5/6</option>
+                    </select>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="saveScheduleSlot()">
+                        <i class="fas fa-save"></i>
+                        حفظ
+                    </button>
+                    <button class="btn btn-outline" onclick="deleteScheduleSlot()">
+                        <i class="fas fa-trash"></i>
+                        حذف الحصة
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة معاينة الملف -->
+    <div id="filePreviewModal" class="file-preview-modal">
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <h3 id="previewFileName">معاينة الملف</h3>
+                <button class="close-modal" onclick="closeFilePreview()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-preview-body" id="filePreviewBody">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </div>
+            <div class="file-preview-footer">
+                <div class="file-info" id="filePreviewInfo"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="downloadPreviewedFile()">
+                        <i class="fas fa-download"></i>
+                        تحميل الملف
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== قسم توقيت الدوام والحصص ==========
+
+        // تحميل جدول توقيت الدوام
+        async function loadWorkSchedule() {
+            try {
+                const timeType = document.getElementById("timeType").value;
+                const workSchedules = await Database.getWorkSchedules();
+                const currentSchedule = workSchedules[timeType] || getDefaultWorkSchedule();
+                const container = document.getElementById("workScheduleBody");
+                
+                container.innerHTML = currentSchedule.map((row, index) => `
+                    <tr>
+                        <td>
+                            <select class="form-control activity-select" onchange="updateWorkSchedule(${index}, 'activity', this.value)">
+                                <option value="الاصطفاف الصباحي" ${row.activity === 'الاصطفاف الصباحي' ? 'selected' : ''}>الاصطفاف الصباحي</option>
+                                <option value="الفسحة" ${row.activity === 'الفسحة' ? 'selected' : ''}>الفسحة</option>
+                                <option value="الصلاة" ${row.activity === 'الصلاة' ? 'selected' : ''}>الصلاة</option>
+                                <option value="الحصة الأولى" ${row.activity === 'الحصة الأولى' ? 'selected' : ''}>الحصة الأولى</option>
+                                <option value="الحصة الثانية" ${row.activity === 'الحصة الثانية' ? 'selected' : ''}>الحصة الثانية</option>
+                                <option value="الحصة الثالثة" ${row.activity === 'الحصة الثالثة' ? 'selected' : ''}>الحصة الثالثة</option>
+                                <option value="الحصة الرابعة" ${row.activity === 'الحصة الرابعة' ? 'selected' : ''}>الحصة الرابعة</option>
+                                <option value="الحصة الخامسة" ${row.activity === 'الحصة الخامسة' ? 'selected' : ''}>الحصة الخامسة</option>
+                                <option value="الحصة السادسة" ${row.activity === 'الحصة السادسة' ? 'selected' : ''}>الحصة السادسة</option>
+                                <option value="الحصة السابعة" ${row.activity === 'الحصة السابعة' ? 'selected' : ''}>الحصة السابعة</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="time" class="time-input" value="${row.start}" onchange="updateWorkSchedule(${index}, 'start', this.value)">
+                        </td>
+                        <td>
+                            <input type="time" class="time-input" value="${row.end}" onchange="updateWorkSchedule(${index}, 'end', this.value)">
+                            ${index > 0 ? `<button class="delete-row-btn" onclick="deleteWorkScheduleRow(${index})" style="margin-top: 5px;">حذف</button>` : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error("خطأ في تحميل جدول التوقيت:", error);
+            }
+        }
+
+        // الحصول على جدول توقيت افتراضي
+        function getDefaultWorkSchedule() {
+            return [
+                { activity: "الاصطفاف الصباحي", start: "07:00", end: "07:15" },
+                { activity: "الحصة الأولى", start: "07:15", end: "08:00" },
+                { activity: "الحصة الثانية", start: "08:00", end: "08:45" },
+                { activity: "الحصة الثالثة", start: "08:45", end: "09:30" },
+                { activity: "الفسحة", start: "09:30", end: "10:00" },
+                { activity: "الحصة الرابعة", start: "10:00", end: "10:45" },
+                { activity: "الحصة الخامسة", start: "10:45", end: "11:30" },
+                { activity: "الصلاة", start: "11:30", end: "11:45" },
+                { activity: "الحصة السادسة", start: "11:45", end: "12:30" },
+                { activity: "الحصة السابعة", start: "12:30", end: "13:15" }
+            ];
+        }
+
+        // تحديث جدول التوقيت
+        async function updateWorkSchedule(index, field, value) {
+            try {
+                const timeType = document.getElementById("timeType").value;
+                const workSchedules = await Database.getWorkSchedules();
+                
+                if (!workSchedules[timeType]) {
+                    workSchedules[timeType] = getDefaultWorkSchedule();
+                }
+                
+                workSchedules[timeType][index][field] = value;
+                await Database.saveWorkSchedule(timeType, workSchedules[timeType]);
+            } catch (error) {
+                console.error("خطأ في تحديث جدول التوقيت:", error);
+            }
+        }
+
+        // إضافة صف جديد
+        async function addWorkScheduleRow() {
+            try {
+                const timeType = document.getElementById("timeType").value;
+                const workSchedules = await Database.getWorkSchedules();
+                
+                if (!workSchedules[timeType]) {
+                    workSchedules[timeType] = getDefaultWorkSchedule();
+                }
+                
+                workSchedules[timeType].push({ activity: "الحصة الأولى", start: "07:00", end: "07:45" });
+                await Database.saveWorkSchedule(timeType, workSchedules[timeType]);
+                await loadWorkSchedule();
+            } catch (error) {
+                console.error("خطأ في إضافة صف جديد:", error);
+            }
+        }
+
+        // حذف صف
+        async function deleteWorkScheduleRow(index) {
+            try {
+                const timeType = document.getElementById("timeType").value;
+                const workSchedules = await Database.getWorkSchedules();
+                
+                if (workSchedules[timeType] && workSchedules[timeType].length > 1) {
+                    workSchedules[timeType].splice(index, 1);
+                    await Database.saveWorkSchedule(timeType, workSchedules[timeType]);
+                    await loadWorkSchedule();
+                }
+            } catch (error) {
+                console.error("خطأ في حذف الصف:", error);
+            }
+        }
+
+        // حفظ جدول التوقيت
+        async function saveWorkSchedule() {
+            try {
+                const timeType = document.getElementById("timeType").value;
+                const workSchedules = await Database.getWorkSchedules();
+                
+                if (!workSchedules[timeType]) {
+                    workSchedules[timeType] = getDefaultWorkSchedule();
+                }
+                
+                await Database.saveWorkSchedule(timeType, workSchedules[timeType]);
+                alert("تم حفظ توقيت الدوام والحصص بنجاح");
+            } catch (error) {
+                console.error("خطأ في حفظ جدول التوقيت:", error);
+                alert("حدث خطأ في حفظ التوقيت");
+            }
+        }
+
+        // إعادة تعيين جدول التوقيت
+        async function resetWorkSchedule() {
+            if (confirm("هل أنت متأكد من إعادة تعيين جدول التوقيت؟ سيتم فقدان جميع التعديلات.")) {
+                try {
+                    const timeType = document.getElementById("timeType").value;
+                    const workSchedules = await Database.getWorkSchedules();
+                    
+                    workSchedules[timeType] = getDefaultWorkSchedule();
+                    await Database.saveWorkSchedule(timeType, workSchedules[timeType]);
+                    await loadWorkSchedule();
+                    alert("تم إعادة تعيين جدول التوقيت بنجاح");
+                } catch (error) {
+                    console.error("خطأ في إعادة تعيين جدول التوقيت:", error);
+                    alert("حدث خطأ في إعادة التعيين");
+                }
+            }
+        }
+
+        // ========== دوال المعاينة والتحميل ==========
+
+        // متغيرات للمعاينة
+        let currentPreviewFile = null;
+
+        // دالة معاينة الملف
+        async function previewFile(fileId) {
+            try {
+                const files = await Database.getFiles();
+                const file = files.find(f => f.id === fileId);
+                
+                if (!file) {
+                    alert('الملف غير موجود');
+                    return;
+                }
+
+                currentPreviewFile = file;
+                
+                // تحديث معلومات الملف في النافذة
+                document.getElementById('previewFileName').textContent = file.title;
+                document.getElementById('filePreviewInfo').innerHTML = `
+                    <strong>${file.title}</strong> - ${file.category} - ${file.date}
+                `;
+                
+                const previewBody = document.getElementById('filePreviewBody');
+                
+                if (file.file_name) {
+                    // إذا كان الملف موجودًا، نقوم بعرضه
+                    const fileExtension = file.file_name.split('.').pop().toLowerCase();
+                    const fileUrl = await getFileUrl(file.file_name);
+                    
+                    if (fileExtension === 'pdf') {
+                        previewBody.innerHTML = `<iframe class="preview-iframe" src="${fileUrl}" type="application/pdf"></iframe>`;
+                    } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension)) {
+                        previewBody.innerHTML = `<img src="${fileUrl}" style="max-width: 100%; max-height: 100%;" alt="${file.title}">`;
+                    } else if (['txt', 'doc', 'docx'].includes(fileExtension)) {
+                        // للملفات النصية ومستندات الوورد، نستخدم iframe
+                        previewBody.innerHTML = `<iframe class="preview-iframe" src="${fileUrl}"></iframe>`;
+                    } else {
+                        previewBody.innerHTML = `
+                            <div class="no-preview">
+                                <i class="fas fa-file"></i>
+                                <p>لا يمكن معاينة هذا النوع من الملفات</p>
+                                <p>يمكنك تحميل الملف ومشاهدته على جهازك</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    previewBody.innerHTML = `
+                        <div class="no-preview">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>لا يوجد ملف مرفوع</p>
+                            <p>هذا المحتوى لا يحتوي على ملف مرفوع</p>
+                        </div>
+                    `;
+                }
+                
+                // إظهار نافذة المعاينة
+                document.getElementById('filePreviewModal').classList.add('active');
+                
+            } catch (error) {
+                console.error('خطأ في معاينة الملف:', error);
+                alert('حدث خطأ في معاينة الملف');
+            }
+        }
+
+        // دالة الحصول على رابط الملف
+        async function getFileUrl(fileName) {
+            try {
+                const fileUrl = await Database.getFileUrl(`files/${fileName}`);
+                return fileUrl || `files/${fileName}`;
+            } catch (error) {
+                console.error('خطأ في جلب رابط الملف:', error);
+                return `files/${fileName}`;
+            }
+        }
+
+        // دالة إغلاق معاينة الملف
+        function closeFilePreview() {
+            document.getElementById('filePreviewModal').classList.remove('active');
+            currentPreviewFile = null;
+        }
+
+        // دالة تحميل الملف المعروض
+        function downloadPreviewedFile() {
+            if (currentPreviewFile && currentPreviewFile.file_name) {
+                downloadFile(currentPreviewFile.id);
+            } else {
+                alert('لا يوجد ملف للتحميل');
+            }
+        }
+
+        // دالة تحميل الملف (محدثة)
+        async function downloadFile(fileId) {
+            try {
+                const files = await Database.getFiles();
+                const file = files.find(f => f.id === fileId);
+                
+                if (!file || !file.file_name) {
+                    alert('الملف غير موجود');
+                    return;
+                }
+
+                // محاكاة عملية التحميل
+                const fileUrl = await getFileUrl(file.file_name);
+                
+                // إنشاء رابط تحميل
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = file.file_name;
+                link.target = '_blank';
+                
+                // إضافة الرابط للصفحة والنقر عليه برمجياً
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                alert(`يتم تحميل الملف: ${file.file_name}`);
+                
+            } catch (error) {
+                console.error('خطأ في تحميل الملف:', error);
+                alert('حدث خطأ في تحميل الملف');
+            }
+        }
+
+        // ========== باقي الدوال تبقى كما هي ==========
+
+        // المتغيرات العامة
+        let selectedJobs = [];
+        let selectedTeacherSubjects = [];
+        let selectedTeacherClasses = [];
+        let selectedTargetStaff = [];
+        let selectedTargetSubjects = [];
+        let selectedTargetClasses = [];
+        let currentDay = '';
+        let currentPeriod = 0;
+        let currentEditingEventId = null;
+
+        // المتغيرات للنافذة المنبثقة لتعديل الموظف
+        let editSelectedJobs = [];
+        let editSelectedTeacherSubjects = [];
+        let editSelectedTeacherClasses = [];
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem("role");
+            localStorage.removeItem("currentStaff");
+            window.location.href = "index.html";
+        }
+
+        // التعديل الأول: وظائف تحديد جميع الموظفين والمعلمين
+        async function selectAllStaff() {
+            try {
+                const staff = await Database.getStaff();
+                selectedTargetStaff = staff.map(s => s.id);
+                updateSelectedStaffDisplay();
+                
+                // تحديث جميع checkboxes
+                document.querySelectorAll('#staffCheckboxes input[type="checkbox"]').forEach(cb => {
+                    cb.checked = true;
+                });
+                
+                alert("تم تحديد جميع الموظفين");
+            } catch (error) {
+                console.error("خطأ في تحديد جميع الموظفين:", error);
+            }
+        }
+
+        async function selectAllTeachers() {
+            try {
+                const staff = await Database.getStaff();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
+                selectedTargetStaff = teachers.map(t => t.id);
+                updateSelectedStaffDisplay();
+                
+                // تحديث checkboxes المعلمين فقط
+                document.querySelectorAll('#staffCheckboxes input[type="checkbox"]').forEach(cb => {
+                    const staffId = cb.value;
+                    const isTeacher = teachers.some(t => t.id === staffId);
+                    cb.checked = isTeacher;
+                });
+                
+                alert("تم تحديد جميع المعلمين");
+            } catch (error) {
+                console.error("خطأ في تحديد جميع المعلمين:", error);
+            }
+        }
+
+        function clearAllSelections() {
+            selectedTargetStaff = [];
+            selectedTargetSubjects = [];
+            selectedTargetClasses = [];
+            updateSelectedStaffDisplay();
+            updateSelectedSubjectsDisplay();
+            updateSelectedClassesDisplay();
+            
+            // إلغاء تحديد جميع checkboxes
+            document.querySelectorAll('#staffCheckboxes input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            document.querySelectorAll('#subjectsTarget input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            document.querySelectorAll('#classesTarget input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+            
+            alert("تم إلغاء جميع التحديدات");
+        }
+
+        // إعداد التنقل بين الأقسام
+        function setupNavigation() {
+            const navItems = document.querySelectorAll('.nav-item');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // إزالة النشاط من جميع العناصر
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    
+                    // إضافة النشاط للعنصر المحدد
+                    this.classList.add('active');
+                    
+                    // إظهار القسم المحدد
+                    const target = this.querySelector('a').getAttribute('data-section');
+                    showSection(target);
+                    
+                    // تحميل البيانات عند الدخول للأقسام
+                    if (target === 'files') {
+                        loadUploadedFiles();
+                        loadStaffCheckboxes();
+                    } else if (target === 'staff') {
+                        displayStaff();
+                    } else if (target === 'calendar') {
+                        displayEvents();
+                    } else if (target === 'schedule') {
+                        loadTeacherDropdown();
+                    } else if (target === 'work-schedule') {
+                        loadWorkSchedule();
+                    } else if (target === 'reports') {
+                        loadReportOptions();
+                    }
+                });
+            });
+        }
+
+        // إظهار القسم المحدد
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            
+            sections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            const targetSection = document.getElementById(sectionId + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+        }
+
+        // ========== التبويبات المتعددة لتحديد المستهدفين ==========
+
+        function initializeMultiSelectTabs() {
+            document.querySelectorAll('.target-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const targetName = this.getAttribute('data-target');
+                    const targetContent = document.getElementById(targetName + 'Target');
+                    targetContent.classList.toggle('active');
+                });
+            });
+        }
+
+        // ========== إدارة الوظائف والمواد والصفوف ==========
+
+        // إظهار/إخفاء تفاصيل المعلم
+        function toggleTeacherDetails() {
+            const teacherDetails = document.getElementById("teacherDetails");
+            const isTeacher = selectedJobs.includes("معلم");
+            
+            if (isTeacher) {
+                teacherDetails.classList.add("active");
+            } else {
+                teacherDetails.classList.remove("active");
+                selectedTeacherSubjects = [];
+                selectedTeacherClasses = [];
+                updateSelectedTeacherSubjectsDisplay();
+                updateSelectedTeacherClassesDisplay();
+            }
+        }
+
+        // إدارة وظائف الموظف
+        function toggleJob(checkbox) {
+            const job = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedJobs.includes(job)) {
+                    selectedJobs.push(job);
+                }
+            } else {
+                selectedJobs = selectedJobs.filter(j => j !== job);
+            }
+            updateSelectedJobsDisplay();
+            toggleTeacherDetails();
+        }
+
+        function updateSelectedJobsDisplay() {
+            const container = document.getElementById("selectedJobs");
+            container.innerHTML = selectedJobs.map(job => 
+                `<span class="selected-item">${job}</span>`
+            ).join('');
+        }
+
+        // إدارة مواد المعلم
+        function toggleTeacherSubject(checkbox) {
+            const subject = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedTeacherSubjects.includes(subject)) {
+                    selectedTeacherSubjects.push(subject);
+                }
+            } else {
+                selectedTeacherSubjects = selectedTeacherSubjects.filter(s => s !== subject);
+            }
+            updateSelectedTeacherSubjectsDisplay();
+        }
+
+        function toggleTeacherClass(checkbox) {
+            const classValue = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedTeacherClasses.includes(classValue)) {
+                    selectedTeacherClasses.push(classValue);
+                }
+            } else {
+                selectedTeacherClasses = selectedTeacherClasses.filter(c => c !== classValue);
+            }
+            updateSelectedTeacherClassesDisplay();
+        }
+
+        function updateSelectedTeacherSubjectsDisplay() {
+            const container = document.getElementById("selectedTeacherSubjects");
+            container.innerHTML = selectedTeacherSubjects.map(subject => 
+                `<span class="selected-item">${subject}</span>`
+            ).join('');
+        }
+
+        function updateSelectedTeacherClassesDisplay() {
+            const container = document.getElementById("selectedTeacherClasses");
+            container.innerHTML = selectedTeacherClasses.map(classValue => 
+                `<span class="selected-item">${classValue}</span>`
+            ).join('');
+        }
+
+        // ========== إضافة موظف جديد ==========
+
+        async function addStaff() {
+            const name = document.getElementById("staffName").value.trim();
+            const id = document.getElementById("staffId").value.trim();
+            const phone = document.getElementById("staffPhone").value.trim();
+
+            if (!name || !id) {
+                alert("يرجى إدخال الاسم ورقم الهوية");
+                return;
+            }
+
+            if (selectedJobs.length === 0) {
+                alert("يرجى اختيار وظيفة واحدة على الأقل");
+                return;
+            }
+
+            try {
+                const staff = await Database.getStaff();
+                
+                if (staff.find(s => s.id === id)) {
+                    alert("رقم الهوية مسجل مسبقًا");
+                    return;
+                }
+
+                const newStaff = {
+                    id: id,
+                    name: name,
+                    phone: phone,
+                    jobs: [...selectedJobs],
+                    subjects: [...selectedTeacherSubjects],
+                    classes: [...selectedTeacherClasses]
+                };
+
+                const { error } = await Database.addStaff(newStaff);
+                
+                if (error) {
+                    throw error;
+                }
+
+                // إعادة تعيين النموذج
+                document.getElementById("staffName").value = "";
+                document.getElementById("staffId").value = "";
+                document.getElementById("staffPhone").value = "";
+                selectedJobs = [];
+                selectedTeacherSubjects = [];
+                selectedTeacherClasses = [];
+                updateSelectedJobsDisplay();
+                updateSelectedTeacherSubjectsDisplay();
+                updateSelectedTeacherClassesDisplay();
+                
+                document.querySelectorAll('.multi-select-container input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('#teacherDetails input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.getElementById("teacherDetails").classList.remove("active");
+
+                await displayStaff();
+                await updateStats();
+                loadStaffCheckboxes();
+                loadTeacherDropdown();
+                alert("تم إضافة الموظف بنجاح");
+            } catch (error) {
+                console.error("خطأ في إضافة الموظف:", error);
+                alert("حدث خطأ في إضافة الموظف");
+            }
+        }
+
+        // ========== نافذة تعديل الموظف ==========
+
+        function editStaff(staffId) {
+            const staff = JSON.parse(localStorage.getItem("staff")) || [];
+            const employee = staff.find(s => s.id === staffId);
+            
+            if (employee) {
+                // فتح نافذة التعديل المنبثقة
+                openEditStaffModal(employee);
+            }
+        }
+
+        // دالة جديدة لفتح نافذة تعديل الموظف
+        function openEditStaffModal(employee) {
+            // إنشاء النافذة المنبثقة
+            const modal = document.createElement('div');
+            modal.className = 'modal active';
+            modal.id = 'editStaffModal';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 600px;">
+                    <div class="modal-header">
+                        <h3>تعديل بيانات الموظف</h3>
+                        <button class="close-modal" onclick="closeEditStaffModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="editStaffName">اسم الموظف</label>
+                                <input type="text" id="editStaffName" class="form-control" value="${employee.name}">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editStaffId">رقم الهوية</label>
+                                <input type="text" id="editStaffId" class="form-control" value="${employee.id}" readonly>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="editStaffPhone">رقم الجوال</label>
+                                <input type="text" id="editStaffPhone" class="form-control" value="${employee.phone || ''}">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>الوظائف</label>
+                            <div class="multi-select-container" id="editJobsContainer">
+                                <!-- سيتم ملؤها بالجافاسكريبت -->
+                            </div>
+                            <div class="selected-items" id="editSelectedJobs"></div>
+                        </div>
+
+                        <div id="editTeacherDetails" class="teacher-details" style="${employee.jobs && employee.jobs.includes('معلم') ? 'display: block;' : 'display: none;'}">
+                            <h4>تفاصيل التدريس (للمعلمين فقط)</h4>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>المواد الدراسية</label>
+                                    <div class="multi-select-grid" id="editSubjectsContainer">
+                                        <!-- سيتم ملؤها بالجافاسكريبت -->
+                                    </div>
+                                    <div class="selected-items" id="editSelectedTeacherSubjects"></div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label>الصفوف الدراسية</label>
+                                    <div class="multi-select-grid" id="editClassesContainer">
+                                        <!-- سيتم ملؤها بالجافاسكريبت -->
+                                    </div>
+                                    <div class="selected-items" id="editSelectedTeacherClasses"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-buttons" style="margin-top: 20px;">
+                            <button class="btn btn-primary" onclick="saveStaffEdit('${employee.id}')">
+                                <i class="fas fa-save"></i>
+                                حفظ التعديلات
+                            </button>
+                            <button class="btn btn-outline" onclick="closeEditStaffModal()">
+                                <i class="fas fa-times"></i>
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // تهيئة البيانات في النافذة
+            initializeEditStaffModal(employee);
+        }
+
+        // تهيئة النافذة المنبثقة
+        function initializeEditStaffModal(employee) {
+            // تعيين القيم الأولية
+            editSelectedJobs = [...(employee.jobs || [])];
+            editSelectedTeacherSubjects = [...(employee.subjects || [])];
+            editSelectedTeacherClasses = [...(employee.classes || [])];
+            
+            // تهيئة الوظائف
+            const jobs = ["معلم", "وكيل", "موجه طلابي", "إداري", "موجه صحي", "رائد نشاط", "معلم صعوبات التعلم"];
+            const jobsContainer = document.getElementById("editJobsContainer");
+            
+            jobsContainer.innerHTML = jobs.map(job => `
+                <div class="multi-select-checkbox">
+                    <input type="checkbox" id="edit_job_${job}" value="${job}" 
+                           ${editSelectedJobs.includes(job) ? 'checked' : ''} 
+                           onchange="toggleEditJob(this)">
+                    <label for="edit_job_${job}">${job}</label>
+                </div>
+            `).join('');
+            
+            updateEditSelectedJobsDisplay();
+            
+            // تهيئة المواد
+            const subjects = ["انجليزي", "رياضيات", "علوم", "بدنية", "عربي", "اسلامية", "اجتماعيات", "حياتية", "فنية", "رقمية", "منتظر 1", "منتظر 2", "منتظر 3", "منتظر 4", "منتظر 5", "نشاط"];
+            const subjectsContainer = document.getElementById("editSubjectsContainer");
+            
+            subjectsContainer.innerHTML = subjects.map(subject => `
+                <div class="multi-select-item">
+                    <input type="checkbox" id="edit_subject_${subject}" value="${subject}" 
+                           ${editSelectedTeacherSubjects.includes(subject) ? 'checked' : ''} 
+                           onchange="toggleEditTeacherSubject(this)">
+                    <label for="edit_subject_${subject}">${subject}</label>
+                </div>
+            `).join('');
+            
+            updateEditSelectedTeacherSubjectsDisplay();
+            
+            // تهيئة الصفوف
+            const classes = ["1/4", "2/4", "3/4", "4/4", "5/4", "1/5", "2/5", "3/5", "4/5", "5/5", "1/6", "2/6", "3/6", "4/6", "5/6"];
+            const classesContainer = document.getElementById("editClassesContainer");
+            
+            classesContainer.innerHTML = classes.map(cls => `
+                <div class="multi-select-item">
+                    <input type="checkbox" id="edit_class_${cls}" value="${cls}" 
+                           ${editSelectedTeacherClasses.includes(cls) ? 'checked' : ''} 
+                           onchange="toggleEditTeacherClass(this)">
+                    <label for="edit_class_${cls}">${cls}</label>
+                </div>
+            `).join('');
+            
+            updateEditSelectedTeacherClassesDisplay();
+        }
+
+        // وظائف إدارة البيانات في النافذة المنبثقة
+        function toggleEditJob(checkbox) {
+            const job = checkbox.value;
+            if (checkbox.checked) {
+                if (!editSelectedJobs.includes(job)) {
+                    editSelectedJobs.push(job);
+                }
+            } else {
+                editSelectedJobs = editSelectedJobs.filter(j => j !== job);
+            }
+            updateEditSelectedJobsDisplay();
+            
+            // إظهار/إخفاء تفاصيل المعلم
+            const teacherDetails = document.getElementById("editTeacherDetails");
+            if (editSelectedJobs.includes("معلم")) {
+                teacherDetails.style.display = "block";
+            } else {
+                teacherDetails.style.display = "none";
+                editSelectedTeacherSubjects = [];
+                editSelectedTeacherClasses = [];
+                updateEditSelectedTeacherSubjectsDisplay();
+                updateEditSelectedTeacherClassesDisplay();
+            }
+        }
+
+        function toggleEditTeacherSubject(checkbox) {
+            const subject = checkbox.value;
+            if (checkbox.checked) {
+                if (!editSelectedTeacherSubjects.includes(subject)) {
+                    editSelectedTeacherSubjects.push(subject);
+                }
+            } else {
+                editSelectedTeacherSubjects = editSelectedTeacherSubjects.filter(s => s !== subject);
+            }
+            updateEditSelectedTeacherSubjectsDisplay();
+        }
+
+        function toggleEditTeacherClass(checkbox) {
+            const classValue = checkbox.value;
+            if (checkbox.checked) {
+                if (!editSelectedTeacherClasses.includes(classValue)) {
+                    editSelectedTeacherClasses.push(classValue);
+                }
+            } else {
+                editSelectedTeacherClasses = editSelectedTeacherClasses.filter(c => c !== classValue);
+            }
+            updateEditSelectedTeacherClassesDisplay();
+        }
+
+        function updateEditSelectedJobsDisplay() {
+            const container = document.getElementById("editSelectedJobs");
+            container.innerHTML = editSelectedJobs.map(job => 
+                `<span class="selected-item">${job}</span>`
+            ).join('');
+        }
+
+        function updateEditSelectedTeacherSubjectsDisplay() {
+            const container = document.getElementById("editSelectedTeacherSubjects");
+            container.innerHTML = editSelectedTeacherSubjects.map(subject => 
+                `<span class="selected-item">${subject}</span>`
+            ).join('');
+        }
+
+        function updateEditSelectedTeacherClassesDisplay() {
+            const container = document.getElementById("editSelectedTeacherClasses");
+            container.innerHTML = editSelectedTeacherClasses.map(classValue => 
+                `<span class="selected-item">${classValue}</span>`
+            ).join('');
+        }
+
+        // حفظ التعديلات
+        async function saveStaffEdit(staffId) {
+            const name = document.getElementById("editStaffName").value.trim();
+            const phone = document.getElementById("editStaffPhone").value.trim();
+
+            if (!name) {
+                alert("يرجى إدخال اسم الموظف");
+                return;
+            }
+
+            if (editSelectedJobs.length === 0) {
+                alert("يرجى اختيار وظيفة واحدة على الأقل");
+                return;
+            }
+
+            try {
+                const staff = await Database.getStaff();
+                const staffIndex = staff.findIndex(s => s.id === staffId);
+                
+                if (staffIndex !== -1) {
+                    const updates = {
+                        name: name,
+                        phone: phone,
+                        jobs: [...editSelectedJobs],
+                        subjects: [...editSelectedTeacherSubjects],
+                        classes: [...editSelectedTeacherClasses]
+                    };
+                    
+                    const { error } = await Database.updateStaff(staffId, updates);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    closeEditStaffModal();
+                    await displayStaff();
+                    await updateStats();
+                    loadStaffCheckboxes();
+                    loadTeacherDropdown();
+                    alert("تم تعديل بيانات الموظف بنجاح");
+                }
+            } catch (error) {
+                console.error("خطأ في تعديل بيانات الموظف:", error);
+                alert("حدث خطأ في تعديل البيانات");
+            }
+        }
+
+        // إغلاق نافذة التعديل
+        function closeEditStaffModal() {
+            const modal = document.getElementById("editStaffModal");
+            if (modal) {
+                modal.remove();
+            }
+            // إعادة تعيين المتغيرات
+            editSelectedJobs = [];
+            editSelectedTeacherSubjects = [];
+            editSelectedTeacherClasses = [];
+        }
+
+        // حذف موظف
+        async function deleteStaff(staffId) {
+            if (confirm("هل أنت متأكد من حذف هذا الموظف؟")) {
+                try {
+                    const { error } = await Database.deleteStaff(staffId);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    await displayStaff();
+                    await updateStats();
+                    loadStaffCheckboxes();
+                    loadTeacherDropdown();
+                    alert("تم حذف الموظف بنجاح");
+                } catch (error) {
+                    console.error("خطأ في حذف الموظف:", error);
+                    alert("حدث خطأ في حذف الموظف");
+                }
+            }
+        }
+
+        // ========== تحديث وظيفة عرض الموظفين ==========
+
+        async function displayStaff() {
+            try {
+                const staff = await Database.getStaff();
+                const tableBody = document.getElementById("staffTableBody");
+                
+                tableBody.innerHTML = staff.map(employee => {
+                    const jobsDisplay = employee.jobs ? 
+                        employee.jobs.map(job => `<span class="selected-item">${job}</span>`).join('') : 
+                        '-';
+                    
+                    // عرض المواد والصفوف للمعلمين
+                    let subjectsClassesDisplay = '-';
+                    if (employee.jobs && employee.jobs.includes('معلم') && employee.subjects && employee.classes) {
+                        subjectsClassesDisplay = employee.subjects.map(subject => 
+                            `<span class="selected-item">${subject}</span>`
+                        ).join('') + '<br>' + employee.classes.map(classValue => 
+                            `<span class="selected-item">${classValue}</span>`
+                        ).join('');
+                    }
+                    
+                    return `
+                        <tr>
+                            <td>${employee.name}</td>
+                            <td>${employee.id}</td>
+                            <td>${employee.phone || '-'}</td>
+                            <td>${jobsDisplay}</td>
+                            <td>${subjectsClassesDisplay}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-outline btn-sm" onclick="editStaff('${employee.id}')">
+                                        <i class="fas fa-edit"></i>
+                                        تعديل
+                                    </button>
+                                    <button class="btn-outline btn-sm" onclick="deleteStaff('${employee.id}')">
+                                        <i class="fas fa-trash"></i>
+                                        حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join("");
+            } catch (error) {
+                console.error("خطأ في جلب بيانات الموظفين:", error);
+            }
+        }
+
+        // ========== قسم رفع المحتوى ==========
+
+        // تحديث الإحصائيات
+        async function updateStats() {
+            try {
+                const staff = await Database.getStaff();
+                const files = await Database.getFiles();
+                
+                document.getElementById("totalStaff").textContent = staff.length;
+                document.getElementById("totalFiles").textContent = files.length;
+                document.getElementById("totalTeachers").textContent = staff.filter(s => 
+                    s.jobs && s.jobs.includes('معلم')
+                ).length;
+            } catch (error) {
+                console.error("خطأ في تحديث الإحصائيات:", error);
+            }
+        }
+
+        // تحميل الملفات المرفوعة
+        async function loadUploadedFiles() {
+            try {
+                const files = await Database.getFiles();
+                const container = document.getElementById("uploadedFilesList");
+                
+                container.innerHTML = files.map(file => `
+                    <div class="file-item">
+                        <div>
+                            <strong>${file.title}</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                ${file.category} - ${file.date}
+                            </div>
+                            ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${file.note}</div>` : ''}
+                            ${file.file_name ? `<div style="font-size: 12px; color: #007bff; margin-top: 2px;"><i class="fas fa-file"></i> ${file.file_name}</div>` : ''}
+                        </div>
+                        <div class="file-actions">
+                            ${file.file_name ? `
+                                <button class="btn btn-outline btn-sm" onclick="previewFile('${file.id}')">
+                                    <i class="fas fa-eye"></i>
+                                    معاينة
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}')">
+                                    <i class="fas fa-download"></i>
+                                    تحميل
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-outline btn-sm" onclick="deleteFile('${file.id}')">
+                                <i class="fas fa-trash"></i>
+                                حذف
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("خطأ في جلب الملفات:", error);
+            }
+        }
+
+        // حذف ملف
+        async function deleteFile(fileId) {
+            if (confirm("هل أنت متأكد من حذف هذا الملف؟")) {
+                try {
+                    const { error } = await Database.deleteFile(fileId);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    await loadUploadedFiles();
+                    await updateStats();
+                    alert("تم حذف الملف بنجاح");
+                } catch (error) {
+                    console.error("خطأ في حذف الملف:", error);
+                    alert("حدث خطأ في حذف الملف");
+                }
+            }
+        }
+
+        // تحميل قائمة الموظفين للتحديد
+        async function loadStaffCheckboxes() {
+            try {
+                const staff = await Database.getStaff();
+                const container = document.getElementById("staffCheckboxes");
+                
+                container.innerHTML = staff.map(employee => `
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="staff_${employee.id}" value="${employee.id}" onchange="toggleStaff(this)">
+                        <label for="staff_${employee.id}">${employee.name}</label>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("خطأ في جلب قائمة الموظفين:", error);
+            }
+        }
+
+        // إدارة المستهدفين
+        function toggleStaff(checkbox) {
+            const staffId = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedTargetStaff.includes(staffId)) {
+                    selectedTargetStaff.push(staffId);
+                }
+            } else {
+                selectedTargetStaff = selectedTargetStaff.filter(id => id !== staffId);
+            }
+            updateSelectedStaffDisplay();
+        }
+
+        function toggleSubject(checkbox) {
+            const subject = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedTargetSubjects.includes(subject)) {
+                    selectedTargetSubjects.push(subject);
+                }
+            } else {
+                selectedTargetSubjects = selectedTargetSubjects.filter(s => s !== subject);
+            }
+            updateSelectedSubjectsDisplay();
+        }
+
+        function toggleClass(checkbox) {
+            const classValue = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedTargetClasses.includes(classValue)) {
+                    selectedTargetClasses.push(classValue);
+                }
+            } else {
+                selectedTargetClasses = selectedTargetClasses.filter(c => c !== classValue);
+            }
+            updateSelectedClassesDisplay();
+        }
+
+        function updateSelectedStaffDisplay() {
+            const container = document.getElementById("selectedStaff");
+            const staff = JSON.parse(localStorage.getItem("staff")) || [];
+            container.innerHTML = selectedTargetStaff.map(staffId => {
+                const employee = staff.find(s => s.id === staffId);
+                return employee ? `<span class="selected-item">${employee.name}</span>` : '';
+            }).join('');
+        }
+
+        function updateSelectedSubjectsDisplay() {
+            const container = document.getElementById("selectedSubjects");
+            container.innerHTML = selectedTargetSubjects.map(subject => 
+                `<span class="selected-item">${subject}</span>`
+            ).join('');
+        }
+
+        function updateSelectedClassesDisplay() {
+            const container = document.getElementById("selectedClasses");
+            container.innerHTML = selectedTargetClasses.map(classValue => 
+                `<span class="selected-item">${classValue}</span>`
+            ).join('');
+        }
+
+        // إضافة ملف
+        async function addFile() {
+            const title = document.getElementById("title").value.trim();
+            const category = document.getElementById("category").value;
+            const note = document.getElementById("note").value.trim();
+            const fileInput = document.getElementById("fileUpload");
+
+            if (!title) {
+                alert("يرجى إدخال عنوان المحتوى");
+                return;
+            }
+
+            if (selectedTargetStaff.length === 0 && selectedTargetSubjects.length === 0 && selectedTargetClasses.length === 0) {
+                alert("يرجى تحديد المستهدفين على الأقل بطريقة واحدة");
+                return;
+            }
+
+            try {
+                const files = await Database.getFiles();
+                const newFile = {
+                    id: Date.now().toString(),
+                    title: title,
+                    category: category,
+                    note: note,
+                    date: new Date().toLocaleDateString('ar-SA'),
+                    target_staff: [...selectedTargetStaff],
+                    target_subjects: [...selectedTargetSubjects],
+                    target_classes: [...selectedTargetClasses],
+                    file_name: fileInput.files[0] ? fileInput.files[0].name : null
+                };
+
+                const { error } = await Database.addFile(newFile);
+                
+                if (error) {
+                    throw error;
+                }
+
+                // إذا كان هناك ملف مرفوع، نقوم برفعه إلى التخزين
+                if (fileInput.files[0]) {
+                    const uploadResult = await Database.uploadFile(fileInput.files[0], fileInput.files[0].name);
+                    if (!uploadResult.success) {
+                        console.error('خطأ في رفع الملف:', uploadResult.error);
+                    }
+                }
+
+                // إعادة تعيين النموذج
+                document.getElementById("title").value = "";
+                document.getElementById("note").value = "";
+                document.getElementById("fileUpload").value = "";
+                selectedTargetStaff = [];
+                selectedTargetSubjects = [];
+                selectedTargetClasses = [];
+                updateSelectedStaffDisplay();
+                updateSelectedSubjectsDisplay();
+                updateSelectedClassesDisplay();
+                
+                // إعادة تعيين checkboxes
+                document.querySelectorAll('#staffCheckboxes input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('#subjectsTarget input[type="checkbox"]').forEach(cb => cb.checked = false);
+                document.querySelectorAll('#classesTarget input[type="checkbox"]').forEach(cb => cb.checked = false);
+
+                await loadUploadedFiles();
+                await updateStats();
+                alert("تم رفع المحتوى بنجاح");
+            } catch (error) {
+                console.error("خطأ في رفع المحتوى:", error);
+                alert("حدث خطأ في رفع المحتوى");
+            }
+        }
+
+        // ========== قسم جدول الحصص ==========
+
+        // تحميل قائمة المعلمين
+        async function loadTeacherDropdown() {
+            try {
+                const staff = await Database.getStaff();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes('معلم'));
+                const dropdown = document.getElementById("scheduleTeacher");
+                
+                dropdown.innerHTML = '<option value="">اختر الموظف</option>' +
+                    teachers.map(teacher => 
+                        `<option value="${teacher.id}">${teacher.name}</option>`
+                    ).join('');
+            } catch (error) {
+                console.error("خطأ في جلب قائمة المعلمين:", error);
+            }
+        }
+
+        // إنشاء جدول فارغ
+        function createEmptySchedule() {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+            const periods = 7;
+            const schedule = {};
+            
+            days.forEach(day => {
+                schedule[day] = [];
+                for (let i = 0; i < periods; i++) {
+                    schedule[day].push({ subject: '', class: '' });
+                }
+            });
+            
+            return schedule;
+        }
+
+        // تحميل جدول المعلم
+        async function loadTeacherSchedule() {
+            const teacherId = document.getElementById("scheduleTeacher").value;
+            if (!teacherId) return;
+
+            try {
+                const schedules = await Database.getSchedules();
+                const teacherSchedule = schedules.find(s => s.teacher_id === teacherId) || 
+                    { teacher_id: teacherId, schedule: createEmptySchedule() };
+
+                renderSchedule(teacherSchedule.schedule);
+            } catch (error) {
+                console.error("خطأ في جلب جدول المعلم:", error);
+            }
+        }
+
+        // عرض الجدول
+        function renderSchedule(schedule) {
+            const grid = document.getElementById("scheduleGrid");
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+            const periodNames = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة'];
+            const periods = 7;
+            
+            let html = `
+                <div class="schedule-header">اليوم/الحصة</div>
+            `;
+            
+            for (let i = 0; i < periods; i++) {
+                html += `<div class="schedule-header">الحصة ${periodNames[i]}</div>`;
+            }
+            
+            days.forEach(day => {
+                html += `<div class="schedule-day">${day}</div>`;
+                
+                for (let i = 0; i < periods; i++) {
+                    const slot = schedule[day][i];
+                    html += `
+                        <div class="schedule-slot" onclick="openScheduleModal('${day}', ${i})">
+                            ${slot.subject ? `
+                                <div class="schedule-subject">${slot.subject}</div>
+                                <div class="schedule-class">${slot.class}</div>
+                            ` : '<div style="color: #999; font-size: 12px;">انقر لإضافة</div>'}
+                        </div>
+                    `;
+                }
+            });
+            
+            grid.innerHTML = html;
+        }
+
+        // فتح modal لتعديل الحصة
+        async function openScheduleModal(day, period) {
+            currentDay = day;
+            currentPeriod = period;
+            
+            try {
+                const schedules = await Database.getSchedules();
+                const teacherId = document.getElementById("scheduleTeacher").value;
+                const teacherSchedule = schedules.find(s => s.teacher_id === teacherId);
+                
+                if (teacherSchedule) {
+                    const slot = teacherSchedule.schedule[day][period];
+                    document.getElementById("modalSubject").value = slot.subject || '';
+                    document.getElementById("modalClass").value = slot.class || '';
+                } else {
+                    document.getElementById("modalSubject").value = '';
+                    document.getElementById("modalClass").value = '';
+                }
+                
+                document.getElementById("scheduleModal").classList.add("active");
+            } catch (error) {
+                console.error("خطأ في فتح نافذة تعديل الحصة:", error);
+            }
+        }
+
+        // إغلاق modal
+        function closeScheduleModal() {
+            document.getElementById("scheduleModal").classList.remove("active");
+        }
+
+        // حفظ الحصة
+        async function saveScheduleSlot() {
+            const subject = document.getElementById("modalSubject").value;
+            const classValue = document.getElementById("modalClass").value;
+            const teacherId = document.getElementById("scheduleTeacher").value;
+            
+            if (!teacherId) {
+                alert("يرجى اختيار موظف أولاً");
+                return;
+            }
+
+            try {
+                const schedules = await Database.getSchedules();
+                let teacherSchedule = schedules.find(s => s.teacher_id === teacherId);
+                
+                if (!teacherSchedule) {
+                    teacherSchedule = {
+                        teacher_id: teacherId,
+                        schedule: createEmptySchedule()
+                    };
+                }
+                
+                teacherSchedule.schedule[currentDay][currentPeriod] = {
+                    subject: subject,
+                    class: classValue
+                };
+                
+                const { error } = await Database.upsertSchedule(teacherSchedule);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                closeScheduleModal();
+                await loadTeacherSchedule();
+                alert("تم حفظ الحصة بنجاح");
+            } catch (error) {
+                console.error("خطأ في حفظ الحصة:", error);
+                alert("حدث خطأ في حفظ الحصة");
+            }
+        }
+
+        // حذف الحصة
+        async function deleteScheduleSlot() {
+            const teacherId = document.getElementById("scheduleTeacher").value;
+            
+            if (!teacherId) {
+                alert("يرجى اختيار موظف أولاً");
+                return;
+            }
+
+            try {
+                const schedules = await Database.getSchedules();
+                let teacherSchedule = schedules.find(s => s.teacher_id === teacherId);
+                
+                if (!teacherSchedule) {
+                    teacherSchedule = {
+                        teacher_id: teacherId,
+                        schedule: createEmptySchedule()
+                    };
+                }
+                
+                teacherSchedule.schedule[currentDay][currentPeriod] = {
+                    subject: '',
+                    class: ''
+                };
+                
+                const { error } = await Database.upsertSchedule(teacherSchedule);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                closeScheduleModal();
+                await loadTeacherSchedule();
+                alert("تم حذف الحصة بنجاح");
+            } catch (error) {
+                console.error("خطأ في حذف الحصة:", error);
+                alert("حدث خطأ في حذف الحصة");
+            }
+        }
+
+        // تفريغ جدول الحصص
+        async function clearSchedule() {
+            const teacherId = document.getElementById("scheduleTeacher").value;
+            if (!teacherId) {
+                alert("يرجى اختيار موظف أولاً");
+                return;
+            }
+            
+            if (confirm("هل أنت متأكد من تفريغ جدول الحصص بالكامل؟")) {
+                try {
+                    const schedules = await Database.getSchedules();
+                    const teacherScheduleIndex = schedules.findIndex(s => s.teacher_id === teacherId);
+                    
+                    if (teacherScheduleIndex !== -1) {
+                        schedules[teacherScheduleIndex].schedule = createEmptySchedule();
+                        const { error } = await Database.upsertSchedule(schedules[teacherScheduleIndex]);
+                        
+                        if (error) {
+                            throw error;
+                        }
+                        
+                        await loadTeacherSchedule();
+                        alert("تم تفريغ جدول الحصص بنجاح");
+                    }
+                } catch (error) {
+                    console.error("خطأ في تفريغ جدول الحصص:", error);
+                    alert("حدث خطأ في تفريغ الجدول");
+                }
+            }
+        }
+
+        // ========== قسم التقويم الدراسي ==========
+
+        // إضافة حدث
+        async function addEvent() {
+            const title = document.getElementById("eventTitle").value.trim();
+            const date = document.getElementById("eventDate").value;
+
+            if (!title || !date) {
+                alert("يرجى إدخال اسم الحدث وتاريخه");
+                return;
+            }
+
+            try {
+                const events = await Database.getEvents();
+                const newEvent = {
+                    id: currentEditingEventId || Date.now().toString(),
+                    title: title,
+                    date: date
+                };
+
+                if (currentEditingEventId) {
+                    // تعديل حدث موجود
+                    const { error } = await Database.updateEvent(currentEditingEventId, newEvent);
+                    if (error) throw error;
+                    currentEditingEventId = null;
+                } else {
+                    // إضافة حدث جديد
+                    const { error } = await Database.addEvent(newEvent);
+                    if (error) throw error;
+                }
+
+                // إعادة تعيين النموذج
+                document.getElementById("eventTitle").value = "";
+                document.getElementById("eventDate").value = "";
+
+                await displayEvents();
+                await updateStats();
+                alert(currentEditingEventId ? "تم تعديل الحدث بنجاح" : "تم إضافة الحدث بنجاح");
+            } catch (error) {
+                console.error("خطأ في إضافة/تعديل الحدث:", error);
+                alert("حدث خطأ في حفظ الحدث");
+            }
+        }
+
+        // عرض الأحداث
+        async function displayEvents() {
+            try {
+                const events = await Database.getEvents();
+                const eventsList = document.getElementById("eventsList");
+                
+                events.sort((a, b) => new Date(a.date) - new Date(b.date));
+                
+                eventsList.innerHTML = events.map(event => {
+                    const eventDate = new Date(event.date);
+                    const today = new Date();
+                    const diffTime = eventDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    let dayText = "اليوم";
+                    if (diffDays > 1) dayText = `باقي ${diffDays} يوم`;
+                    else if (diffDays < 0) dayText = "منتهي";
+                    
+                    return `
+                        <div class="event-item">
+                            <div>
+                                <strong>${event.title}</strong>
+                                <div style="font-size: 12px; color: #666; margin-top: 5px;">
+                                    ${new Date(event.date).toLocaleDateString('ar-SA')}
+                                </div>
+                                <div class="event-actions">
+                                    <button class="btn-outline btn-sm" onclick="editEvent('${event.id}')">
+                                        <i class="fas fa-edit"></i>
+                                        تعديل
+                                    </button>
+                                    <button class="btn-outline btn-sm" onclick="deleteEvent('${event.id}')">
+                                        <i class="fas fa-trash"></i>
+                                        حذف
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="event-date">${dayText}</div>
+                        </div>
+                    `;
+                }).join("");
+            } catch (error) {
+                console.error("خطأ في جلب الأحداث:", error);
+            }
+        }
+
+        // تعديل حدث
+        async function editEvent(eventId) {
+            try {
+                const events = await Database.getEvents();
+                const event = events.find(e => e.id === eventId);
+                
+                if (event) {
+                    document.getElementById("eventTitle").value = event.title;
+                    document.getElementById("eventDate").value = event.date;
+                    currentEditingEventId = eventId;
+                    
+                    alert("يمكنك الآن تعديل بيانات الحدث في النموذج أعلاه");
+                }
+            } catch (error) {
+                console.error("خطأ في تعديل الحدث:", error);
+            }
+        }
+
+        // حذف حدث
+        async function deleteEvent(eventId) {
+            if (confirm("هل أنت متأكد من حذف هذا الحدث؟")) {
+                try {
+                    const { error } = await Database.deleteEvent(eventId);
+                    
+                    if (error) {
+                        throw error;
+                    }
+                    
+                    await displayEvents();
+                    await updateStats();
+                    alert("تم حذف الحدث بنجاح");
+                } catch (error) {
+                    console.error("خطأ في حذف الحدث:", error);
+                    alert("حدث خطأ في حذف الحدث");
+                }
+            }
+        }
+
+        // ========== قسم التقارير والإحصائيات ==========
+
+        // تبديل تبويبات التقارير
+        function switchReportTab(tabName) {
+            // إخفاء جميع المحتويات
+            document.querySelectorAll('#reports-section .tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // إزالة النشاط من جميع الأزرار
+            document.querySelectorAll('#reports-section .tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // إظهار المحتوى المحدد
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // تعيين النشاط للزر المحدد
+            event.currentTarget.classList.add('active');
+            
+            // تحميل البيانات حسب التبويب
+            if (tabName === 'reception') {
+                loadReportOptions();
+            } else if (tabName === 'teachers') {
+                generateTeachersSchedule();
+            }
+        }
+
+        // تبديل خيارات التقرير
+        function toggleReportOptions() {
+            const reportType = document.getElementById("reportType").value;
+            
+            if (reportType === "staff") {
+                document.getElementById("staffReportOption").style.display = "block";
+                document.getElementById("fileReportOption").style.display = "none";
+            } else {
+                document.getElementById("staffReportOption").style.display = "none";
+                document.getElementById("fileReportOption").style.display = "block";
+            }
+        }
+
+        // تحميل خيارات التقرير
+        async function loadReportOptions() {
+            try {
+                const staff = await Database.getStaff();
+                const files = await Database.getFiles();
+                
+                // تحميل قائمة الموظفين
+                const staffSelect = document.getElementById("reportStaff");
+                staffSelect.innerHTML = '<option value="">اختر الموظف</option>' +
+                    staff.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                
+                // تحميل قائمة الملفات
+                const fileSelect = document.getElementById("reportFile");
+                fileSelect.innerHTML = '<option value="">اختر المحتوى</option>' +
+                    files.map(f => `<option value="${f.id}">${f.title}</option>`).join('');
+            } catch (error) {
+                console.error("خطأ في تحميل خيارات التقرير:", error);
+            }
+        }
+
+        // توليد التقرير
+        async function generateReport() {
+            const reportType = document.getElementById("reportType").value;
+            const resultsContainer = document.getElementById("reportResults");
+            const reportActions = document.getElementById("reportActions");
+            
+            if (reportType === "staff") {
+                const staffId = document.getElementById("reportStaff").value;
+                if (!staffId) {
+                    alert("يرجى اختيار موظف");
+                    return;
+                }
+                await generateStaffReport(staffId);
+            } else {
+                const fileId = document.getElementById("reportFile").value;
+                if (!fileId) {
+                    alert("يرجى اختيار محتوى");
+                    return;
+                }
+                await generateFileReport(fileId);
+            }
+            
+            reportActions.style.display = "flex";
+        }
+
+        // توليد تقرير الموظف مع بيانات الاطلاع الحقيقية
+        async function generateStaffReport(staffId) {
+            try {
+                const staff = await Database.getStaff();
+                const files = await Database.getFiles();
+                const fileReadStatus = await Database.getFileReadStatus();
+                const employee = staff.find(s => s.id === staffId);
+                const resultsContainer = document.getElementById("reportResults");
+                
+                if (!employee) return;
+                
+                // جمع الملفات الموجهة للموظف
+                const staffFiles = files.filter(file => {
+                    // التحقق من التوجيه بالاسم
+                    if (file.target_staff && file.target_staff.includes(staffId)) {
+                        return true;
+                    }
+                    
+                    // التحقق من التوجيه بالمادة (للمعلمين)
+                    if (employee.jobs && employee.jobs.includes("معلم") && 
+                        file.target_subjects && file.target_subjects.some(subject => 
+                            employee.subjects && employee.subjects.includes(subject)
+                        )) {
+                        return true;
+                    }
+                    
+                    // التحقق من التوجيه بالصف (للمعلمين)
+                    if (employee.jobs && employee.jobs.includes("معلم") && 
+                        file.target_classes && file.target_classes.some(cls => 
+                            employee.classes && employee.classes.includes(cls)
+                        )) {
+                        return true;
+                    }
+                    
+                    return false;
+                });
+                
+                // توليد HTML للتقرير
+                let html = `
+                    <div class="report-header">
+                        <h3>تقرير الملفات المرسلة إلى: ${employee.name}</h3>
+                        <p>إجمالي الملفات: ${staffFiles.length}</p>
+                    </div>
+                `;
+                
+                if (staffFiles.length > 0) {
+                    html += `
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>عنوان المحتوى</th>
+                                    <th>التصنيف</th>
+                                    <th>تاريخ الإرسال</th>
+                                    <th>حالة الاطلاع</th>
+                                    <th>تاريخ الاطلاع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    staffFiles.forEach(file => {
+                        // استخدام بيانات الاطلاع الحقيقية
+                        const readStatus = fileReadStatus[file.id] && fileReadStatus[file.id][staffId] ? 
+                            fileReadStatus[file.id][staffId].read : false;
+                        const readDate = fileReadStatus[file.id] && fileReadStatus[file.id][staffId] ? 
+                            new Date(fileReadStatus[file.id][staffId].read_date).toLocaleDateString('ar-SA') : '-';
+                        
+                        html += `
+                            <tr>
+                                <td>${file.title}</td>
+                                <td>${file.category}</td>
+                                <td>${file.date}</td>
+                                <td><span class="report-status ${readStatus ? 'status-read' : 'status-unread'}">${readStatus ? 'تم الاطلاع' : 'لم يطلع'}</span></td>
+                                <td>${readDate}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `</tbody></table>`;
+                } else {
+                    html += `<p class="no-data">لا توجد ملفات مرسلة لهذا الموظف</p>`;
+                }
+                
+                resultsContainer.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في توليد تقرير الموظف:", error);
+            }
+        }
+
+        // توليد تقرير الملف مع بيانات الاطلاع الحقيقية
+        async function generateFileReport(fileId) {
+            try {
+                const files = await Database.getFiles();
+                const staff = await Database.getStaff();
+                const fileReadStatus = await Database.getFileReadStatus();
+                const file = files.find(f => f.id === fileId);
+                const resultsContainer = document.getElementById("reportResults");
+                
+                if (!file) return;
+                
+                // جمع الموظفين المستهدفين
+                let targetStaff = [];
+                
+                // الموظفون المستهدفون بالاسم
+                if (file.target_staff && file.target_staff.length > 0) {
+                    file.target_staff.forEach(staffId => {
+                        const employee = staff.find(s => s.id === staffId);
+                        if (employee) targetStaff.push(employee);
+                    });
+                }
+                
+                // الموظفون المستهدفون بالمادة
+                if (file.target_subjects && file.target_subjects.length > 0) {
+                    staff.forEach(employee => {
+                        if (employee.jobs && employee.jobs.includes("معلم") && 
+                            employee.subjects && employee.subjects.some(subject => 
+                                file.target_subjects.includes(subject)
+                            )) {
+                            if (!targetStaff.find(s => s.id === employee.id)) {
+                                targetStaff.push(employee);
+                            }
+                        }
+                    });
+                }
+                
+                // الموظفون المستهدفون بالصف
+                if (file.target_classes && file.target_classes.length > 0) {
+                    staff.forEach(employee => {
+                        if (employee.jobs && employee.jobs.includes("معلم") && 
+                            employee.classes && employee.classes.some(cls => 
+                                file.target_classes.includes(cls)
+                            )) {
+                            if (!targetStaff.find(s => s.id === employee.id)) {
+                                targetStaff.push(employee);
+                            }
+                        }
+                    });
+                }
+                
+                // توليد HTML للتقرير
+                let html = `
+                    <div class="report-header">
+                        <h3>تقرير الموظفين المرسل لهم: ${file.title}</h3>
+                        <p>إجمالي الموظفين: ${targetStaff.length}</p>
+                    </div>
+                `;
+                
+                if (targetStaff.length > 0) {
+                    html += `
+                        <table class="report-table">
+                            <thead>
+                                <tr>
+                                    <th>اسم الموظف</th>
+                                    <th>رقم الهوية</th>
+                                    <th>الوظائف</th>
+                                    <th>حالة الاطلاع</th>
+                                    <th>تاريخ الاطلاع</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    
+                    targetStaff.forEach(employee => {
+                        // استخدام بيانات الاطلاع الحقيقية
+                        const readStatus = fileReadStatus[fileId] && fileReadStatus[fileId][employee.id] ? 
+                            fileReadStatus[fileId][employee.id].read : false;
+                        const readDate = fileReadStatus[fileId] && fileReadStatus[fileId][employee.id] ? 
+                            new Date(fileReadStatus[fileId][employee.id].read_date).toLocaleDateString('ar-SA') : '-';
+                        
+                        html += `
+                            <tr>
+                                <td>${employee.name}</td>
+                                <td>${employee.id}</td>
+                                <td>${employee.jobs ? employee.jobs.join('، ') : '-'}</td>
+                                <td><span class="report-status ${readStatus ? 'status-read' : 'status-unread'}">${readStatus ? 'تم الاطلاع' : 'لم يطلع'}</span></td>
+                                <td>${readDate}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += `</tbody></table>`;
+                } else {
+                    html += `<p class="no-data">لا توجد موظفين مرسل لهم هذا المحتوى</p>`;
+                }
+                
+                resultsContainer.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في توليد تقرير الملف:", error);
+            }
+        }
+
+        // طباعة التقرير
+        function printReport() {
+            const reportContent = document.getElementById("reportResults").innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>تقرير المدرسة</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            margin: 20px; 
+                            direction: rtl;
+                        }
+                        .report-header { 
+                            text-align: center; 
+                            margin-bottom: 20px; 
+                            border-bottom: 2px solid #2c5aa0; 
+                            padding-bottom: 10px; 
+                        }
+                        table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                            margin-top: 20px; 
+                        }
+                        th, td { 
+                            padding: 10px; 
+                            text-align: right; 
+                            border: 1px solid #ddd; 
+                        }
+                        th { 
+                            background-color: #2c5aa0; 
+                            color: white; 
+                        }
+                        .report-status { 
+                            padding: 4px 8px; 
+                            border-radius: 4px; 
+                            font-size: 12px; 
+                        }
+                        .status-read { background-color: #d4edda; color: #155724; }
+                        .status-unread { background-color: #f8d7da; color: #721c24; }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${reportContent}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // ========== الجدول العام للمعلمين ==========
+
+        // توليد جدول المعلمين
+        async function generateTeachersSchedule() {
+            try {
+                const staff = await Database.getStaff();
+                const schedules = await Database.getSchedules();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
+                const container = document.getElementById("teachersSchedule");
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <div class="print-only" style="text-align: center; margin-bottom: 20px;">
+                        <h2>الجدول العام للمعلمين - مدرسة عمرو بن العاص</h2>
+                        <p>${new Date().toLocaleDateString('ar-SA')}</p>
+                    </div>
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">اسم المعلم</th>
+                                <th colspan="${periods}">الأحد</th>
+                                <th colspan="${periods}">الإثنين</th>
+                                <th colspan="${periods}">الثلاثاء</th>
+                                <th colspan="${periods}">الأربعاء</th>
+                                <th colspan="${periods}">الخميس</th>
+                            </tr>
+                            <tr>
+                `;
+                
+                // رؤوس الحصص لكل يوم
+                for (let day = 0; day < 5; day++) {
+                    for (let i = 1; i <= periods; i++) {
+                        html += `<th>${i}</th>`;
+                    }
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                // بيانات المعلمين
+                teachers.forEach(teacher => {
+                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
+                    
+                    html += `<tr><td class="teacher-name">${teacher.name}</td>`;
+                    
+                    // لكل يوم من الأيام
+                    for (let day of days) {
+                        // لكل حصة في اليوم
+                        for (let period = 0; period < periods; period++) {
+                            let slotContent = '';
+                            
+                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
+                                const slot = teacherSchedule.schedule[day][period];
+                                if (slot.subject && slot.class) {
+                                    slotContent = `
+                                        <div class="schedule-subject">${slot.subject}</div>
+                                        <div class="schedule-class">${slot.class}</div>
+                                    `;
+                                }
+                            }
+                            
+                            html += `<td class="schedule-slot-cell">${slotContent}</td>`;
+                        }
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في توليد جدول المعلمين:", error);
+            }
+        }
+
+        // طباعة جدول المعلمين بشكل أفقي
+        async function printTeachersSchedule() {
+            try {
+                const staff = await Database.getStaff();
+                const schedules = await Database.getSchedules();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;">اليوم/الحصة</th>
+                `;
+                
+                // رؤوس أيام الأسبوع
+                for (let day of days) {
+                    html += `<th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;" colspan="${periods}">${day}</th>`;
+                }
+                
+                html += `</tr><tr><th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;"></th>`;
+                
+                // رؤوس الحصص لكل يوم
+                for (let day = 0; day < 5; day++) {
+                    for (let i = 1; i <= periods; i++) {
+                        html += `<th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;">${i}</th>`;
+                    }
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                // بيانات المعلمين بشكل أفقي (كل معلم في صف)
+                teachers.forEach(teacher => {
+                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
+                    
+                    html += `<tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; background: #f8f9fa; font-weight: bold; text-align: right;">${teacher.name}</td>`;
+                    
+                    // لكل يوم من الأيام
+                    for (let day of days) {
+                        // لكل حصة في اليوم
+                        for (let period = 0; period < periods; period++) {
+                            let slotContent = '-';
+                            
+                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
+                                const slot = teacherSchedule.schedule[day][period];
+                                if (slot.subject && slot.class) {
+                                    slotContent = `${slot.subject}<br><small>${slot.class}</small>`;
+                                }
+                            }
+                            
+                            html += `<td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${slotContent}</td>`;
+                        }
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>الجدول العام للمعلمين</title>
+                        <style>
+                            @media print {
+                                @page {
+                                    size: landscape;
+                                    margin: 10mm;
+                                }
+                                body { 
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                    margin: 0;
+                                    direction: rtl;
+                                }
+                                table { 
+                                    width: 100%; 
+                                    border-collapse: collapse; 
+                                    font-size: 10px;
+                                }
+                                th, td { 
+                                    border: 1px solid #ddd; 
+                                    padding: 4px; 
+                                    text-align: center; 
+                                }
+                                th { 
+                                    background-color: #2c5aa0; 
+                                    color: white; 
+                                }
+                            }
+                            body { 
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                margin: 20px; 
+                                direction: rtl;
+                            }
+                            h2 { 
+                                text-align: center; 
+                                color: #2c5aa0; 
+                                margin-bottom: 15px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>الجدول العام للمعلمين - مدرسة عمرو بن العاص</h2>
+                        ${html}
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.print();
+            } catch (error) {
+                console.error("خطأ في طباعة جدول المعلمين:", error);
+            }
+        }
+
+        // ========== جدول الفصول ==========
+
+        // توليد جدول الفصل
+        async function generateClassSchedule() {
+            const classValue = document.getElementById("classSelector").value;
+            if (!classValue) return;
+            
+            try {
+                const staff = await Database.getStaff();
+                const schedules = await Database.getSchedules();
+                const container = document.getElementById("classSchedule");
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <div class="print-only" style="text-align: center; margin-bottom: 20px;">
+                        <h2>جدول الفصل ${classValue} - مدرسة عمرو بن العاص</h2>
+                        <p>${new Date().toLocaleDateString('ar-SA')}</p>
+                    </div>
+                    <table class="class-schedule-table">
+                        <thead>
+                            <tr>
+                                <th>اليوم/الحصة</th>
+                `;
+                
+                // رؤوس الحصص
+                for (let i = 1; i <= periods; i++) {
+                    html += `<th class="period-header">الحصة ${i}</th>`;
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                // بيانات الأيام
+                days.forEach(day => {
+                    html += `<tr><td class="day-header">${day}</td>`;
+                    
+                    for (let period = 0; period < periods; period++) {
+                        let slotContent = '-';
+                        
+                        // البحث عن الحصة في جداول المعلمين
+                        schedules.forEach(schedule => {
+                            const teacher = staff.find(s => s.id === schedule.teacher_id);
+                            if (teacher && schedule.schedule[day] && schedule.schedule[day][period]) {
+                                const slot = schedule.schedule[day][period];
+                                if (slot.class === classValue && slot.subject) {
+                                    slotContent = `${slot.subject}<br><small>${teacher.name}</small>`;
+                                }
+                            }
+                        });
+                        
+                        html += `<td>${slotContent}</td>`;
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في توليد جدول الفصل:", error);
+            }
+        }
+
+        // طباعة جدول الفصل
+        function printClassSchedule() {
+            const classValue = document.getElementById("classSelector").value;
+            if (!classValue) {
+                alert("يرجى اختيار فصل أولاً");
+                return;
+            }
+            
+            const scheduleContent = document.getElementById("classSchedule").innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>جدول الفصل ${classValue}</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            margin: 10px; 
+                            direction: rtl;
+                        }
+                        .class-schedule-table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                        }
+                        .class-schedule-table th, 
+                        .class-schedule-table td { 
+                            border: 1px solid #ddd; 
+                            padding: 10px; 
+                            text-align: center; 
+                        }
+                        .class-schedule-table th { 
+                            background-color: #2c5aa0; 
+                            color: white; 
+                            font-weight: bold;
+                        }
+                        .period-header { 
+                            background-color: #1e3d72; 
+                        }
+                        .day-header { 
+                            background-color: #4a7bc8; 
+                            font-weight: bold;
+                        }
+                        h2 { 
+                            text-align: center; 
+                            color: #2c5aa0; 
+                            margin-bottom: 5px; 
+                        }
+                        @media print {
+                            body { margin: 5mm; }
+                            .class-schedule-table { font-size: 12px; }
+                            .class-schedule-table th, 
+                            .class-schedule-table td { padding: 6px; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${scheduleContent}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // ========== التهيئة ==========
+
+        // تهيئة البيانات الافتراضية
+        async function initializeSampleData() {
+            try {
+                const staff = await Database.getStaff();
+                const files = await Database.getFiles();
+                const events = await Database.getEvents();
+                
+                if (staff.length === 0) {
+                    const sampleStaff = [
+                        { id: "1234567890", name: "أحمد محمد", phone: "0551234567", jobs: ["معلم"], subjects: ["رياضيات"], classes: ["1/4", "2/4"] },
+                        { id: "0987654321", name: "سارة عبدالله", phone: "0557654321", jobs: ["وكيل"] },
+                        { id: "1122334455", name: "محمد علي", phone: "0551122334", jobs: ["معلم", "موجه طلابي"], subjects: ["انجليزي", "عربي"], classes: ["3/4", "4/4"] }
+                    ];
+                    
+                    for (const staffMember of sampleStaff) {
+                        await Database.addStaff(staffMember);
+                    }
+                }
+                
+                if (files.length === 0) {
+                    const sampleFiles = [
+                        { 
+                            id: "1", 
+                            title: "التعميم الأسبوعي", 
+                            category: "التعاميم الداخلية", 
+                            note: "يتعلق بالأنشطة الأسبوعية", 
+                            date: "١٤٤٥/٠٣/٠١",
+                            target_staff: ["1234567890"],
+                            target_subjects: [],
+                            target_classes: [],
+                            file_name: null
+                        }
+                    ];
+                    
+                    for (const file of sampleFiles) {
+                        await Database.addFile(file);
+                    }
+                }
+                
+                if (events.length === 0) {
+                    const today = new Date();
+                    const nextWeek = new Date(today);
+                    nextWeek.setDate(today.getDate() + 7);
+                    
+                    const sampleEvents = [
+                        { id: "1", title: "بداية الفصل الدراسي الثاني", date: today.toISOString().split('T')[0] },
+                        { id: "2", title: "اختبارات منتصف الفصل", date: nextWeek.toISOString().split('T')[0] }
+                    ];
+                    
+                    for (const event of sampleEvents) {
+                        await Database.addEvent(event);
+                    }
+                }
+                
+                // تحميل خيارات التقارير
+                await loadReportOptions();
+            } catch (error) {
+                console.error("خطأ في تهيئة البيانات الافتراضية:", error);
+            }
+        }
+
+        // تهيئة التطبيق
+        document.addEventListener("DOMContentLoaded", async function() {
+            if (localStorage.getItem("role") !== "admin") {
+                window.location.href = "index.html";
+                return;
+            }
+            
+            await initializeSampleData();
+            setupNavigation();
+            await displayStaff();
+            await displayEvents();
+            await updateStats();
+            await loadStaffCheckboxes();
+            await loadTeacherDropdown();
+            await loadWorkSchedule();
+            
+            // تهيئة التبويبات المتعددة
+            initializeMultiSelectTabs();
+            
+            // إظهار قسم لوحة التحكم افتراضيًا
+            showSection('dashboard');
+        });
+    </script>
+</body>
+</html>
