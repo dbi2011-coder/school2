@@ -168,6 +168,60 @@ const Database = {
             };
         });
         return status;
+    },
+
+    // دالة جديدة لرفع الملفات إلى التخزين
+    async uploadFile(file, fileName) {
+        try {
+            // رفع الملف إلى التخزين
+            const { data, error } = await supabase.storage
+                .from('school-files')
+                .upload(`files/${fileName}`, file);
+            
+            if (error) throw error;
+            
+            // الحصول على رابط عام للملف
+            const { data: urlData } = supabase.storage
+                .from('school-files')
+                .getPublicUrl(`files/${fileName}`);
+            
+            return { 
+                success: true, 
+                filePath: `files/${fileName}`,
+                publicUrl: urlData.publicUrl
+            };
+        } catch (error) {
+            console.error('خطأ في رفع الملف:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    // دالة جديدة لجلب رابط الملف
+    async getFileUrl(filePath) {
+        try {
+            const { data } = supabase.storage
+                .from('school-files')
+                .getPublicUrl(filePath);
+            
+            return data.publicUrl;
+        } catch (error) {
+            console.error('خطأ في جلب رابط الملف:', error);
+            return null;
+        }
+    },
+
+    // دالة جديدة لحذف الملف من التخزين
+    async deleteFileFromStorage(filePath) {
+        try {
+            const { data, error } = await supabase.storage
+                .from('school-files')
+                .remove([filePath]);
+            
+            return { success: !error, error };
+        } catch (error) {
+            console.error('خطأ في حذف الملف:', error);
+            return { success: false, error };
+        }
     }
 };
 
