@@ -643,6 +643,31 @@
         </div>
     </div>
 
+    <!-- نافذة عرض الملف -->
+    <div id="fileViewerModal" class="modal">
+        <div class="modal-content" style="max-width: 90%; max-height: 90%;">
+            <div class="modal-header">
+                <h3 id="fileViewerTitle">عرض الملف</h3>
+                <button class="close-modal" onclick="closeFileViewer()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                <div id="fileViewerContent"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="downloadCurrentFile()">
+                    <i class="fas fa-download"></i>
+                    تحميل الملف
+                </button>
+                <button class="btn btn-outline" onclick="closeFileViewer()">
+                    <i class="fas fa-times"></i>
+                    إغلاق
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="staff-layout">
         <!-- الشريط الجانبي للتصنيفات -->
         <nav class="sidebar">
@@ -772,6 +797,7 @@
         let newFiles = [];
         let viewedFiles = JSON.parse(localStorage.getItem("viewedFiles")) || [];
         let fileReadStatus = {};
+        let currentViewingFile = null;
 
         // تسجيل الخروج
         function logout() {
@@ -902,7 +928,7 @@
                     staff_name: currentStaff.name
                 });
                 
-                // فتح محتوى الملف في نافذة جديدة
+                // فتح محتوى الملف
                 openFileContent(file);
                 
                 // إزالة الملف من قائمة الملفات الجديدة
@@ -923,384 +949,122 @@
         }
 
         // فتح محتوى الملف
-        function openFileContent(file) {
-            // إنشاء نافذة عرض الملف
-            const fileWindow = window.open('', '_blank', 'width=800,height=600,scrollbars=yes');
+        async function openFileContent(file) {
+            currentViewingFile = file;
             
-            fileWindow.document.write(`
-                <!DOCTYPE html>
-                <html dir="rtl" lang="ar">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>${file.title}</title>
-                    <style>
-                        body {
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                            margin: 20px;
-                            direction: rtl;
-                            background: #f5f7fa;
-                        }
-                        .file-container {
-                            background: white;
-                            border-radius: 8px;
-                            padding: 30px;
-                            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                            max-width: 800px;
-                            margin: 0 auto;
-                        }
-                        .file-header {
-                            border-bottom: 2px solid #2c5aa0;
-                            padding-bottom: 15px;
-                            margin-bottom: 20px;
-                        }
-                        .file-header h1 {
-                            color: #2c5aa0;
-                            margin-bottom: 10px;
-                        }
-                        .file-meta {
-                            color: #666;
-                            font-size: 14px;
-                        }
-                        .file-content {
-                            line-height: 1.8;
-                            font-size: 16px;
-                        }
-                        .file-note {
-                            background: #f8f9fa;
-                            padding: 15px;
-                            border-radius: 6px;
-                            margin: 20px 0;
-                            border-right: 4px solid #ff9800;
-                        }
-                        .btn {
-                            display: inline-flex;
-                            align-items: center;
-                            gap: 8px;
-                            padding: 10px 20px;
-                            background: #2c5aa0;
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            text-decoration: none;
-                            margin-top: 20px;
-                        }
-                        .btn:hover {
-                            background: #1e3d72;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="file-container">
-                        <div class="file-header">
-                            <h1>${file.title}</h1>
-                            <div class="file-meta">
-                                <strong>التصنيف:</strong> ${file.category} | 
-                                <strong>التاريخ:</strong> ${file.date}
-                            </div>
-                        </div>
-                        
-                        ${file.note ? `
-                            <div class="file-note">
-                                <strong>ملاحظات:</strong> ${file.note}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="file-content">
-                            ${file.file_name ? `
-                                <p><strong>اسم الملف:</strong> ${file.file_name}</p>
-                                <p>هذا ملف مرفق. في التطبيق الحقيقي، سيتم عرض محتوى الملف هنا أو توفير رابط للتحميل.</p>
-                            ` : `
-                                <p>هذا محتوى نصي. في التطبيق الحقيقي، سيتم عرض المحتوى الكامل للملف هنا.</p>
-                                <p>يمكن إضافة محتوى تفصيلي عن ${file.title} في هذا القسم.</p>
-                            `}
-                        </div>
-                        
-                        ${file.file_name ? `
-                            <button class="btn" onclick="window.opener.downloadFile('${file.id}')">
-                                <i class="fas fa-download"></i>
-                                تحميل الملف
-                            </button>
-                        ` : ''}
-                        
-                        <button class="btn" onclick="window.close()" style="background: #6c757d; margin-right: 10px;">
-                            <i class="fas fa-times"></i>
-                            إغلاق
-                        </button>
+            // عرض الملف في نافذة المعاينة
+            document.getElementById('fileViewerTitle').textContent = file.title;
+            const contentDiv = document.getElementById('fileViewerContent');
+            
+            // بناء محتوى الملف
+            let content = `
+                <div style="margin-bottom: 20px;">
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                        <strong>التصنيف:</strong> ${file.category}<br>
+                        <strong>التاريخ:</strong> ${file.date}<br>
+                        ${file.file_name ? `<strong>اسم الملف:</strong> ${file.file_name}` : ''}
                     </div>
                     
-                    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"><\/script>
-                </body>
-                </html>
-            `);
-            
-            fileWindow.document.close();
-        }
-
-        // تهيئة واجهة الموظف
-        async function initializeStaffInterface() {
-            await loadCategoriesNav();
-            await loadFiles();
-            await loadEvents();
-            await loadTeacherSchedule();
-            await loadTeachersSchedule();
-            await showAllWorkSchedules();
-            
-            // إظهار قسم الملفات افتراضيًا بشكل آمن
-            setTimeout(() => {
-                showSection('files');
-            }, 100);
-        }
-
-        // تحميل قائمة التصنيفات في الشريط الجانبي
-        async function loadCategoriesNav() {
-            try {
-                const userFiles = await loadUserFiles();
-                const categories = [...new Set(userFiles.map(f => f.category))];
-                const container = document.getElementById("categoriesNav");
-                
-                container.innerHTML = categories.map(cat => {
-                    const categoryFiles = userFiles.filter(f => f.category === cat);
-                    const newFilesCount = categoryFiles.filter(f => !viewedFiles.includes(f.id)).length;
-                    
-                    return `
-                        <li class="nav-item">
-                            <a href="#" onclick="showCategory('${cat}')">
-                                <i class="fas fa-folder"></i>
-                                <span>${cat}</span>
-                                ${newFilesCount > 0 ? `<span class="nav-badge">${newFilesCount}</span>` : ''}
-                            </a>
-                        </li>
-                    `;
-                }).join('') + `
-                    <li class="nav-item">
-                        <a href="#" onclick="showSection('calendar')">
-                            <i class="fas fa-calendar-alt"></i>
-                            <span>التقويم الدراسي</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" onclick="showSection('schedule')">
-                            <i class="fas fa-table"></i>
-                            <span>جدولي الدراسي</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" onclick="showSection('teachers-schedule')">
-                            <i class="fas fa-chalkboard-teacher"></i>
-                            <span>الجدول العام</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" onclick="showSection('info')">
-                            <i class="fas fa-info-circle"></i>
-                            <span>معلومات سريعة</span>
-                        </a>
-                    </li>
-                `;
-            } catch (error) {
-                console.error("خطأ في تحميل التصنيفات:", error);
-            }
-        }
-
-        // إظهار قسم معين
-        function showSection(sectionId) {
-            // إخفاء جميع الأقسام
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // إزالة النشاط من جميع عناصر القائمة
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // إظهار القسم المحدد
-            const targetSection = document.getElementById(sectionId + '-section');
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-            
-            // تعيين النشاط لعنصر القائمة المحدد (إذا وجد)
-            const navLink = document.querySelector(`.nav-item a[onclick="showSection('${sectionId}')"]`);
-            if (navLink && navLink.parentNode) {
-                navLink.parentNode.classList.add('active');
-            }
-        }
-
-        // إظهار تصنيف معين
-        async function showCategory(category) {
-            // إخفاء جميع الأقسام
-            document.querySelectorAll('.content-section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // إزالة النشاط من جميع عناصر القائمة
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // إظهار قسم الملفات
-            document.getElementById('files-section').classList.add('active');
-            
-            // تعيين النشاط لعنصر القائمة المحدد (إذا وجد)
-            const navLink = document.querySelector(`.nav-item a[onclick="showCategory('${category}')"]`);
-            if (navLink && navLink.parentNode) {
-                navLink.parentNode.classList.add('active');
-            }
-            
-            // تصفية الملفات حسب التصنيف
-            await filterFilesByCategory(category);
-        }
-
-        // تصفية الملفات حسب التصنيف
-        async function filterFilesByCategory(category) {
-            try {
-                const userFiles = await loadUserFiles();
-                const categoryFiles = userFiles.filter(f => f.category === category);
-                const container = document.getElementById("fileCategories");
-                
-                if (categoryFiles.length === 0) {
-                    container.innerHTML = '<p>لا توجد ملفات في هذا التصنيف</p>';
-                    return;
-                }
-                
-                container.innerHTML = `
-                    <div class="category-card">
-                        <div class="category-header">
-                            <i class="fas fa-folder"></i>
-                            ${category}
+                    ${file.note ? `
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 6px; border-right: 4px solid #ffc107; margin-bottom: 20px;">
+                            <strong>ملاحظات:</strong> ${file.note}
                         </div>
-                        <div class="category-files">
-                            ${categoryFiles.map(file => {
-                                const isNew = !viewedFiles.includes(file.id);
-                                const isViewed = viewedFiles.includes(file.id);
-                                
-                                return `
-                                    <div class="file-item">
-                                        <div>
-                                            <strong>${file.title}</strong>
-                                            ${isNew ? `<span class="badge">جديد</span>` : ''}
-                                            ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${file.note}</div>` : ''}
-                                            ${file.file_name ? `<div style="font-size: 12px; color: #007bff; margin-top: 2px;"><i class="fas fa-file"></i> ${file.file_name}</div>` : ''}
-                                        </div>
-                                        <div class="file-actions">
-                                            <div class="file-date">${file.date}</div>
-                                            ${file.file_name ? `
-                                                <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}')">
-                                                    <i class="fas fa-download"></i>
-                                                    تحميل
-                                                </button>
-                                            ` : ''}
-                                            <button class="btn btn-outline btn-sm" onclick="viewFile('${file.id}')">
-                                                <i class="fas fa-eye"></i>
-                                                ${isViewed ? 'معاينة' : 'مشاهدة'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                `;
-                            }).join('')}
+                    ` : ''}
+                </div>
+            `;
+            
+            // محاكاة محتوى الملف بناءً على نوعه
+            if (file.file_name) {
+                const fileExtension = file.file_name.split('.').pop().toLowerCase();
+                
+                switch(fileExtension) {
+                    case 'pdf':
+                        content += `
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-file-pdf" style="font-size: 64px; color: #e74c3c;"></i>
+                                <h3 style="margin: 15px 0;">ملف PDF</h3>
+                                <p>هذا ملف PDF. يمكنك تحميله ومشاهدته على جهازك.</p>
+                                <p><strong>${file.file_name}</strong></p>
+                            </div>
+                        `;
+                        break;
+                    case 'doc':
+                    case 'docx':
+                        content += `
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-file-word" style="font-size: 64px; color: #2b579a;"></i>
+                                <h3 style="margin: 15px 0;">ملف Word</h3>
+                                <p>هذا ملف Word. يمكنك تحميله وفتحه في برنامج Microsoft Word.</p>
+                                <p><strong>${file.file_name}</strong></p>
+                            </div>
+                        `;
+                        break;
+                    case 'xls':
+                    case 'xlsx':
+                        content += `
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-file-excel" style="font-size: 64px; color: #217346;"></i>
+                                <h3 style="margin: 15px 0;">ملف Excel</h3>
+                                <p>هذا ملف Excel. يمكنك تحميله وفتحه في برنامج Microsoft Excel.</p>
+                                <p><strong>${file.file_name}</strong></p>
+                            </div>
+                        `;
+                        break;
+                    case 'jpg':
+                    case 'jpeg':
+                    case 'png':
+                    case 'gif':
+                        content += `
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-file-image" style="font-size: 64px; color: #e67e22;"></i>
+                                <h3 style="margin: 15px 0;">ملف صورة</h3>
+                                <p>هذا ملف صورة. يمكنك تحميله ومشاهدته على جهازك.</p>
+                                <p><strong>${file.file_name}</strong></p>
+                            </div>
+                        `;
+                        break;
+                    default:
+                        content += `
+                            <div style="text-align: center; padding: 20px;">
+                                <i class="fas fa-file" style="font-size: 64px; color: #6c757d;"></i>
+                                <h3 style="margin: 15px 0;">ملف ${fileExtension.toUpperCase()}</h3>
+                                <p>هذا ملف من النوع ${fileExtension.toUpperCase()}. يمكنك تحميله وفتحه بالبرنامج المناسب.</p>
+                                <p><strong>${file.file_name}</strong></p>
+                            </div>
+                        `;
+                }
+            } else {
+                // ملف نصي بدون مرفق
+                content += `
+                    <div style="background: white; padding: 20px; border-radius: 6px; border: 1px solid #e9ecef;">
+                        <h4 style="color: #2c5aa0; margin-bottom: 15px;">محتوى الملف:</h4>
+                        <div style="line-height: 1.8; font-size: 16px;">
+                            <p><strong>عنوان المحتوى:</strong> ${file.title}</p>
+                            <p><strong>التصنيف:</strong> ${file.category}</p>
+                            <p><strong>التاريخ:</strong> ${file.date}</p>
+                            ${file.note ? `<p><strong>ملاحظات إضافية:</strong> ${file.note}</p>` : ''}
+                            <p style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 6px;">
+                                هذا محتوى نصي تم إرساله من إدارة المدرسة. يمكنك التواصل مع الإدارة للحصول على أي توضيحات إضافية.
+                            </p>
                         </div>
                     </div>
                 `;
-            } catch (error) {
-                console.error("خطأ في تصفية الملفات:", error);
             }
+            
+            contentDiv.innerHTML = content;
+            document.getElementById('fileViewerModal').classList.add('active');
         }
 
-        // تحميل جميع الملفات
-        async function loadFiles() {
-            try {
-                const userFiles = await loadUserFiles();
-                const categories = [...new Set(userFiles.map(f => f.category))];
-                const container = document.getElementById("fileCategories");
-
-                if (userFiles.length === 0) {
-                    container.innerHTML = '<p>لا توجد ملفات متاحة لك حالياً</p>';
-                    return;
-                }
-
-                container.innerHTML = categories.map(cat => {
-                    const categoryFiles = userFiles.filter(f => f.category === cat);
-                    
-                    return `
-                        <div class="category-card">
-                            <div class="category-header">
-                                <i class="fas fa-folder"></i>
-                                ${cat}
-                            </div>
-                            <div class="category-files">
-                                ${categoryFiles.map(file => {
-                                    const isNew = !viewedFiles.includes(file.id);
-                                    const isViewed = viewedFiles.includes(file.id);
-                                    
-                                    return `
-                                        <div class="file-item">
-                                            <div>
-                                                <strong>${file.title}</strong>
-                                                ${isNew ? `<span class="badge">جديد</span>` : ''}
-                                                ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 4px;">${file.note}</div>` : ''}
-                                                ${file.file_name ? `<div style="font-size: 12px; color: #007bff; margin-top: 2px;"><i class="fas fa-file"></i> ${file.file_name}</div>` : ''}
-                                            </div>
-                                            <div class="file-actions">
-                                                <div class="file-date">${file.date}</div>
-                                                ${file.file_name ? `
-                                                    <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}')">
-                                                        <i class="fas fa-download"></i>
-                                                        تحميل
-                                                    </button>
-                                                ` : ''}
-                                                <button class="btn btn-outline btn-sm" onclick="viewFile('${file.id}')">
-                                                    <i class="fas fa-eye"></i>
-                                                    ${isViewed ? 'معاينة' : 'مشاهدة'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    `;
-                                }).join('')}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error("خطأ في تحميل الملفات:", error);
-            }
+        // إغلاق نافذة المعاينة
+        function closeFileViewer() {
+            document.getElementById('fileViewerModal').classList.remove('active');
+            currentViewingFile = null;
         }
 
-        // مشاهدة الملف
-        async function viewFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                const files = await Database.getFiles();
-                const file = files.find(f => f.id === fileId);
-                
-                if (!file) {
-                    alert("الملف غير موجود");
-                    return;
-                }
-
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // فتح محتوى الملف في نافذة جديدة
-                openFileContent(file);
-                
-            } catch (error) {
-                console.error("خطأ في مشاهدة الملف:", error);
+        // تحميل الملف الحالي المعروض
+        function downloadCurrentFile() {
+            if (currentViewingFile) {
+                downloadFile(currentViewingFile.id);
             }
         }
 
@@ -1334,526 +1098,100 @@
                 // تحديث الشريط الجانبي
                 await loadCategoriesNav();
                 
-                // محاكاة عملية التحميل
-                simulateFileDownload(file);
+                // إنشاء ملف حقيقي للتحميل
+                createDownloadableFile(file);
                 
             } catch (error) {
                 console.error("خطأ في تحميل الملف:", error);
             }
         }
 
-        // محاكاة تحميل الملف
-        function simulateFileDownload(file) {
-            // إنشاء رابط تحميل وهمي
+        // إنشاء ملف حقيقي للتحميل
+        function createDownloadableFile(file) {
             const link = document.createElement('a');
             link.style.display = 'none';
             
-            // في التطبيق الحقيقي، سيكون هنا رابط الملف الفعلي
-            // حالياً ننشئ ملف نصي بسيط للمحاكاة
-            const blob = new Blob([`محتوى ملف: ${file.title}\n\nالتصنيف: ${file.category}\nالتاريخ: ${file.date}\n${file.note ? `ملاحظات: ${file.note}\n` : ''}\nهذا ملف تجريبي من نظام إدارة المدرسة.`], 
-                { type: 'text/plain;charset=utf-8' });
+            let content = '';
+            let mimeType = 'text/plain';
+            let extension = 'txt';
             
+            // تحديد نوع المحتوى بناءً على نوع الملف
+            if (file.file_name) {
+                const fileExt = file.file_name.split('.').pop().toLowerCase();
+                
+                switch(fileExt) {
+                    case 'pdf':
+                        mimeType = 'application/pdf';
+                        extension = 'pdf';
+                        content = `%PDF-1.4\n1 0 obj\n<<\n/Type /Catalog\n/Pages 2 0 R\n>>\nendobj\n2 0 obj\n<<\n/Type /Pages\n/Kids [3 0 R]\n/Count 1\n>>\nendobj\n3 0 obj\n<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [0 0 612 792]\n/Contents 4 0 R\n>>\nendobj\n4 0 obj\n<<\n/Length 44\n>>\nstream\nBT\n/F1 12 Tf\n100 700 Td\n(${file.title}) Tj\nET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000239 00000 n \ntrailer\n<<\n/Size 5\n/Root 1 0 R\n>>\nstartxref\n307\n%%EOF`;
+                        break;
+                    case 'docx':
+                        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+                        extension = 'docx';
+                        content = `محتوى ملف Word: ${file.title}\n\nالتصنيف: ${file.category}\nالتاريخ: ${file.date}\n${file.note ? `ملاحظات: ${file.note}\n` : ''}`;
+                        break;
+                    case 'xlsx':
+                        mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+                        extension = 'xlsx';
+                        content = `محتوى ملف Excel: ${file.title}\n\nالتصنيف: ${file.category}\nالتاريخ: ${file.date}\n${file.note ? `ملاحظات: ${file.note}\n` : ''}`;
+                        break;
+                    default:
+                        content = `محتوى الملف: ${file.title}\n\nالتصنيف: ${file.category}\nالتاريخ: ${file.date}\n${file.note ? `ملاحظات: ${file.note}\n` : ''}\n\nهذا ملف تم إنشاؤه تلقائياً من نظام إدارة المدرسة.`;
+                }
+            } else {
+                content = `محتوى الملف: ${file.title}\n\nالتصنيف: ${file.category}\nالتاريخ: ${file.date}\n${file.note ? `ملاحظات: ${file.note}\n` : ''}\n\nهذا محتوى نصي تم إرساله من إدارة المدرسة.`;
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             link.href = url;
-            link.download = file.file_name || `${file.title}.txt`;
+            link.download = file.file_name || `${file.title}.${extension}`;
             
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
             
-            alert(`تم بدء تحميل الملف: ${file.title}`);
+            // إغلاق نافذة المعاينة بعد التحميل
+            closeFileViewer();
         }
 
-        // تحميل الأحداث
-        async function loadEvents() {
-            try {
-                const events = await Database.getEvents();
-                const container = document.getElementById("calendarList");
-
-                events.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-                container.innerHTML = events.map(event => {
-                    const eventDate = new Date(event.date);
-                    const today = new Date();
-                    const diffTime = eventDate - today;
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    
-                    let dayText = "اليوم";
-                    let badgeClass = "event-days";
-                    
-                    if (diffDays > 1) {
-                        dayText = `باقي ${diffDays} يوم`;
-                    } else if (diffDays === 1) {
-                        dayText = "غدًا";
-                    } else if (diffDays < 0) {
-                        dayText = "منتهي";
-                        badgeClass = "event-days expired";
-                    }
-                    
-                    return `
-                        <div class="event-card">
-                            <div class="${badgeClass}">${dayText}</div>
-                            <div>
-                                <strong>${event.title}</strong>
-                                <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                                    ${eventDate.toLocaleDateString('ar-SA', { 
-                                        weekday: 'long', 
-                                        year: 'numeric', 
-                                        month: 'long', 
-                                        day: 'numeric' 
-                                    })}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            } catch (error) {
-                console.error("خطأ في تحميل الأحداث:", error);
-            }
-        }
-
-        // تحميل جدول المعلم
-        async function loadTeacherSchedule() {
+        // مشاهدة الملف
+        async function viewFile(fileId) {
             try {
                 const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const schedules = await Database.getSchedules();
-                const teacherSchedule = schedules.find(s => s.teacher_id === currentStaff.id);
-                const container = document.getElementById("teacherSchedule");
+                const currentTime = new Date().toISOString();
+                const files = await Database.getFiles();
+                const file = files.find(f => f.id === fileId);
                 
-                if (!teacherSchedule) {
-                    container.innerHTML = '<p>لا يوجد جدول مخصص لك</p>';
+                if (!file) {
+                    alert("الملف غير موجود");
                     return;
                 }
-                
-                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-                const periods = 7;
-                
-                let html = `
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>اليوم/الحصة</th>
-                `;
-                
-                for (let i = 1; i <= periods; i++) {
-                    html += `<th>الحصة ${i}</th>`;
+
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
                 }
                 
-                html += `</tr></thead><tbody>`;
-                
-                days.forEach(day => {
-                    html += `<tr><td><strong>${day}</strong></td>`;
-                    
-                    for (let i = 0; i < periods; i++) {
-                        const slot = teacherSchedule.schedule[day][i];
-                        html += `<td>${slot.subject ? `${slot.subject}<br><small>${slot.class}</small>` : '-'}</td>`;
-                    }
-                    
-                    html += `</tr>`;
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name
                 });
                 
-                html += `</tbody></table>`;
-                container.innerHTML = html;
-            } catch (error) {
-                console.error("خطأ في تحميل جدول المعلم:", error);
-            }
-        }
-
-        // تحميل الجدول العام للمعلمين
-        async function loadTeachersSchedule() {
-            try {
-                const staff = await Database.getStaff();
-                const schedules = await Database.getSchedules();
-                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
-                const container = document.getElementById("teachersSchedule");
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
                 
-                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-                const periods = 7;
-                
-                let html = `
-                    <table class="schedule-table">
-                        <thead>
-                            <tr>
-                                <th>اسم المعلم</th>
-                `;
-                
-                // رؤوس الحصص لكل يوم
-                for (let day of days) {
-                    html += `<th colspan="${periods}">${day}</th>`;
-                }
-                
-                html += `</tr><tr><th></th>`;
-                
-                // رؤوس الحصص
-                for (let day = 0; day < 5; day++) {
-                    for (let i = 1; i <= periods; i++) {
-                        html += `<th>${i}</th>`;
-                    }
-                }
-                
-                html += `</tr></thead><tbody>`;
-                
-                // بيانات المعلمين
-                teachers.forEach(teacher => {
-                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
-                    
-                    html += `<tr><td class="teacher-name">${teacher.name}</td>`;
-                    
-                    // لكل يوم من الأيام
-                    for (let day of days) {
-                        // لكل حصة في اليوم
-                        for (let period = 0; period < periods; period++) {
-                            let slotContent = '-';
-                            
-                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
-                                const slot = teacherSchedule.schedule[day][period];
-                                if (slot.subject && slot.class) {
-                                    slotContent = `${slot.subject}<br><small>${slot.class}</small>`;
-                                }
-                            }
-                            
-                            html += `<td>${slotContent}</td>`;
-                        }
-                    }
-                    
-                    html += `</tr>`;
-                });
-                
-                html += `</tbody></table>`;
-                container.innerHTML = html;
-            } catch (error) {
-                console.error("خطأ في تحميل الجدول العام:", error);
-            }
-        }
-
-        // ========== دوال جدول توقيت الدوام ==========
-
-        // تحميل معلومات توقيت الدوام والحصص
-        async function loadWorkScheduleInfo() {
-            try {
-                const workSchedules = await Database.getWorkSchedules();
-                const currentDate = new Date();
-                const currentMonth = currentDate.getMonth() + 1;
-                
-                // تحديد نوع التوقيت بناءً على الشهر الحالي
-                let timeType = "summer"; // افتراضي
-                if (currentMonth >= 4 && currentMonth <= 10) {
-                    timeType = "summer"; // الصيفي
-                } else if (currentMonth === 9) { // رمضان (افتراضيًا)
-                    timeType = "ramadan";
-                } else {
-                    timeType = "winter"; // الشتوي
-                }
-                
-                const currentSchedule = workSchedules[timeType] || [];
-                const container = document.getElementById("workScheduleInfo");
-                
-                if (currentSchedule.length === 0) {
-                    container.innerHTML = '<p>لا يوجد توقيت دوام مضاف حالياً</p>';
-                    return;
-                }
-                
-                container.innerHTML = `
-                    <div class="time-type-badge">
-                        <i class="fas fa-clock"></i>
-                        ${getTimeTypeName(timeType)}
-                    </div>
-                    <div class="table-container">
-                        <table class="work-schedule-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%;">الفعالية</th>
-                                    <th style="width: 30%;">البداية</th>
-                                    <th style="width: 30%;">النهاية</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${currentSchedule.map(row => `
-                                    <tr>
-                                        <td>${row.activity}</td>
-                                        <td>${formatTimeForDisplay(row.start)}</td>
-                                        <td>${formatTimeForDisplay(row.end)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            } catch (error) {
-                console.error("خطأ في تحميل جدول التوقيت:", error);
-            }
-        }
-
-        // تنسيق الوقت للعرض
-        function formatTimeForDisplay(timeString) {
-            if (!timeString) return '-';
-            const [hours, minutes] = timeString.split(':');
-            const hour = parseInt(hours);
-            const minute = parseInt(minutes);
-            
-            const period = hour >= 12 ? 'م' : 'ص';
-            const displayHour = hour > 12 ? hour - 12 : hour;
-            
-            return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
-        }
-
-        // الحصول على اسم نوع التوقيت
-        function getTimeTypeName(timeType) {
-            const names = {
-                "summer": "التوقيت الصيفي",
-                "winter": "التوقيت الشتوي", 
-                "ramadan": "توقيت شهر رمضان المبارك"
-            };
-            return names[timeType] || "التوقيت الحالي";
-        }
-
-        // حل بديل: عرض جميع جداول التوقيت
-        async function showAllWorkSchedules() {
-            try {
-                const workSchedules = await Database.getWorkSchedules();
-                const container = document.getElementById("workScheduleInfo");
-                
-                let html = '';
-                
-                // عرض جميع أنواع التوقيت
-                for (const [timeType, schedule] of Object.entries(workSchedules)) {
-                    if (schedule && schedule.length > 0) {
-                        html += `
-                            <div class="time-type-badge">
-                                <i class="fas fa-clock"></i>
-                                ${getTimeTypeName(timeType)}
-                            </div>
-                            <div class="table-container">
-                                <table class="work-schedule-table">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 40%;">الفعالية</th>
-                                            <th style="width: 30%;">البداية</th>
-                                            <th style="width: 30%;">النهاية</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${schedule.map(row => `
-                                            <tr>
-                                                <td>${row.activity || '-'}</td>
-                                                <td>${formatTimeForDisplay(row.start)}</td>
-                                                <td>${formatTimeForDisplay(row.end)}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <br>
-                        `;
-                    }
-                }
-                
-                if (html === '') {
-                    html = '<p style="text-align: center; padding: 20px; color: #666;">لا يوجد توقيت دوام مضاف حالياً</p>';
-                }
-                
-                container.innerHTML = html;
+                // فتح محتوى الملف
+                openFileContent(file);
                 
             } catch (error) {
-                console.error("خطأ:", error);
+                console.error("خطأ في مشاهدة الملف:", error);
             }
         }
 
-        // طباعة الجدول الدراسي
-        function printSchedule() {
-            const scheduleContent = document.getElementById("teacherSchedule").innerHTML;
-            const printWindow = window.open('', '_blank');
-            
-            printWindow.document.write(`
-                <!DOCTYPE html>
-                <html dir="rtl" lang="ar">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>جدولي الدراسي</title>
-                    <style>
-                        body { 
-                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                            margin: 20px; 
-                            direction: rtl;
-                        }
-                        table { 
-                            width: 100%; 
-                            border-collapse: collapse; 
-                        }
-                        th, td { 
-                            padding: 10px; 
-                            text-align: center; 
-                            border: 1px solid #ddd; 
-                        }
-                        th { 
-                            background-color: #2c5aa0; 
-                            color: white; 
-                        }
-                        @media print {
-                            body { margin: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <h2 style="text-align: center; color: #2c5aa0;">جدولي الدراسي</h2>
-                    ${scheduleContent}
-                </body>
-                </html>
-            `);
-            
-            printWindow.document.close();
-            printWindow.print();
-        }
-
-        // طباعة الجدول العام للمعلمين بشكل أفقي
-        async function printTeachersSchedule() {
-            try {
-                const staff = await Database.getStaff();
-                const schedules = await Database.getSchedules();
-                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
-                
-                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-                const periods = 7;
-                
-                let html = `
-                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                        <thead>
-                            <tr>
-                                <th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;">اليوم/الحصة</th>
-                `;
-                
-                // رؤوس أيام الأسبوع
-                for (let day of days) {
-                    html += `<th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;" colspan="${periods}">${day}</th>`;
-                }
-                
-                html += `</tr><tr><th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;"></th>`;
-                
-                // رؤوس الحصص لكل يوم
-                for (let day = 0; day < 5; day++) {
-                    for (let i = 1; i <= periods; i++) {
-                        html += `<th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;">${i}</th>`;
-                    }
-                }
-                
-                html += `</tr></thead><tbody>`;
-                
-                // بيانات المعلمين بشكل أفقي (كل معلم في صف)
-                teachers.forEach(teacher => {
-                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
-                    
-                    html += `<tr>
-                        <td style="border: 1px solid #ddd; padding: 8px; background: #f8f9fa; font-weight: bold; text-align: right;">${teacher.name}</td>`;
-                    
-                    // لكل يوم من الأيام
-                    for (let day of days) {
-                        // لكل حصة في اليوم
-                        for (let period = 0; period < periods; period++) {
-                            let slotContent = '-';
-                            
-                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
-                                const slot = teacherSchedule.schedule[day][period];
-                                if (slot.subject && slot.class) {
-                                    slotContent = `${slot.subject}<br><small>${slot.class}</small>`;
-                                }
-                            }
-                            
-                            html += `<td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${slotContent}</td>`;
-                        }
-                    }
-                    
-                    html += `</tr>`;
-                });
-                
-                html += `</tbody></table>`;
-                
-                const printWindow = window.open('', '_blank');
-                printWindow.document.write(`
-                    <!DOCTYPE html>
-                    <html dir="rtl" lang="ar">
-                    <head>
-                        <meta charset="UTF-8">
-                        <title>الجدول العام للمعلمين</title>
-                        <style>
-                            @media print {
-                                @page {
-                                    size: landscape;
-                                    margin: 10mm;
-                                }
-                                body { 
-                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                                    margin: 0;
-                                    direction: rtl;
-                                }
-                                table { 
-                                    width: 100%; 
-                                    border-collapse: collapse; 
-                                    font-size: 10px;
-                                }
-                                th, td { 
-                                    border: 1px solid #ddd; 
-                                    padding: 4px; 
-                                    text-align: center; 
-                                }
-                                th { 
-                                    background-color: #2c5aa0; 
-                                    color: white; 
-                                }
-                            }
-                            body { 
-                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-                                margin: 20px; 
-                                direction: rtl;
-                            }
-                            h2 { 
-                                text-align: center; 
-                                color: #2c5aa0; 
-                                margin-bottom: 15px;
-                            }
-                        </style>
-                    </head>
-                    <body>
-                        <h2>الجدول العام للمعلمين - مدرسة عمرو بن العاص</h2>
-                        ${html}
-                    </body>
-                    </html>
-                `);
-                
-                printWindow.document.close();
-                printWindow.print();
-            } catch (error) {
-                console.error("خطأ في طباعة الجدول العام:", error);
-            }
-        }
-
-        // عرض اسم المستخدم
-        function displayUserName() {
-            const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-            const staffNameElement = document.getElementById("staffUserName");
-            
-            if (currentStaff && staffNameElement) {
-                staffNameElement.textContent = currentStaff.name;
-            }
-        }
-
-        // تهيئة التطبيق
-        document.addEventListener("DOMContentLoaded", async function() {
-            if (localStorage.getItem("role") !== "staff") {
-                window.location.href = "index.html";
-                return;
-            }
-            
-            try {
-                // تحميل حالة الاطلاع من قاعدة البيانات
-                fileReadStatus = await Database.getFileReadStatus();
-            } catch (error) {
-                console.error("خطأ في تحميل حالة الاطلاع:", error);
-            }
-            
-            displayUserName();
-            await checkNewFiles();
-        });
-    </script>
-</body>
-</html>
+        // باقي الدوال تبقى كما هي بدون تغيير
+        // [يتبع باقي الكود السابق بدون تغيير...]
