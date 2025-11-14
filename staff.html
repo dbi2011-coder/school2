@@ -978,7 +978,6 @@
             document.getElementById('fileViewerTitle').textContent = file.title;
             const contentDiv = document.getElementById('fileViewerContent');
             
-            // بناء محتوى الملف الحقيقي
             let content = `
                 <div class="file-meta">
                     <strong>التصنيف:</strong> ${file.category} | 
@@ -996,149 +995,65 @@
                 `;
             }
             
-            // إنشاء محتوى حقيقي للملف
-            const fileContent = generateFileContent(file);
-            content += `
-                <div class="file-preview">
-                    <h4 style="color: #2c5aa0; margin-bottom: 15px;">محتوى الملف:</h4>
-                    <div class="file-content">${fileContent}</div>
-                </div>
-            `;
+            // إذا كان هناك ملف مرفق، نعرض معلوماته فقط
+            if (file.file_name) {
+                const fileExtension = file.file_name.split('.').pop().toLowerCase();
+                const fileType = getFileType(fileExtension);
+                
+                content += `
+                    <div class="file-preview">
+                        <div style="text-align: center; padding: 40px;">
+                            <i class="${fileType.icon}" style="font-size: 64px; color: ${fileType.color};"></i>
+                            <h3 style="margin: 20px 0; color: #2c5aa0;">${fileType.name}</h3>
+                            <p style="font-size: 16px; color: #666;">
+                                <strong>${file.file_name}</strong><br>
+                                <span style="font-size: 14px;">حجم الملف: ${getFileSize()}</span>
+                            </p>
+                            <p style="margin-top: 20px; color: #888;">
+                                يمكنك تحميل الملف ومشاهدته على جهازك باستخدام البرنامج المناسب.
+                            </p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // إذا لم يكن هناك ملف مرفق، نعرض المحتوى النصي فقط
+                content += `
+                    <div class="file-preview">
+                        <h4 style="color: #2c5aa0; margin-bottom: 15px;">محتوى التعميم:</h4>
+                        <div class="file-content">
+                            <strong>${file.title}</strong><br><br>
+                            ${file.note || 'لا يوجد محتوى نصي إضافي.'}
+                        </div>
+                    </div>
+                `;
+            }
             
             contentDiv.innerHTML = content;
             document.getElementById('fileViewerModal').classList.add('active');
         }
 
-        // إنشاء محتوى حقيقي للملف
-        function generateFileContent(file) {
-            // محتوى أساسي للملف
-            let baseContent = `
-عنوان الملف: ${file.title}
-التصنيف: ${file.category}
-تاريخ الإصدار: ${file.date}
-${file.note ? `ملاحظات: ${file.note}` : ''}
-
-`;
+        // الحصول على نوع الملف
+        function getFileType(extension) {
+            const types = {
+                'pdf': { name: 'ملف PDF', icon: 'fas fa-file-pdf', color: '#e74c3c' },
+                'doc': { name: 'ملف Word', icon: 'fas fa-file-word', color: '#2b579a' },
+                'docx': { name: 'ملف Word', icon: 'fas fa-file-word', color: '#2b579a' },
+                'xls': { name: 'ملف Excel', icon: 'fas fa-file-excel', color: '#217346' },
+                'xlsx': { name: 'ملف Excel', icon: 'fas fa-file-excel', color: '#217346' },
+                'jpg': { name: 'صورة', icon: 'fas fa-file-image', color: '#e67e22' },
+                'jpeg': { name: 'صورة', icon: 'fas fa-file-image', color: '#e67e22' },
+                'png': { name: 'صورة', icon: 'fas fa-file-image', color: '#e67e22' },
+                'gif': { name: 'صورة', icon: 'fas fa-file-image', color: '#e67e22' },
+                'txt': { name: 'ملف نصي', icon: 'fas fa-file-alt', color: '#6c757d' }
+            };
             
-            // إضافة محتوى تفصيلي بناءً على التصنيف
-            switch(file.category) {
-                case 'التعاميم الخارجية':
-                    baseContent += `
-هذا تعميم خارجي صادر من إدارة التعليم
+            return types[extension] || { name: `ملف ${extension.toUpperCase()}`, icon: 'fas fa-file', color: '#6c757d' };
+        }
 
-تفاصيل التعميم:
-- الجهة المصدرة: إدارة التعليم
-- رقم التعميم: ${Math.floor(1000 + Math.random() * 9000)}/${new Date().getFullYear()}
-- موضوع التعميم: ${file.title}
-- تاريخ التنفيذ: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('ar-SA')}
-
-تعليمات التنفيذ:
-1. الاطلاع على محتوى التعميم
-2. تنفيذ التعليمات الواردة
-3. إعداد تقرير عن سير التنفيذ
-4. رفع التقرخ لإدارة المدرسة
-
-للتواصل:
-- مدير المدرسة: أ/ عمر عبد الله الحماد
-- الهاتف: 0147654321
-`;
-                    break;
-                    
-                case 'التعاميم الداخلية':
-                    baseContent += `
-تعميم داخلي - مدرسة عمرو بن العاص
-
-تفاصيل التعميم:
-- رقم التعميم: داخلي/${Math.floor(100 + Math.random() * 900)}
-- تاريخ الإصدار: ${file.date}
-- جهة الإصدار: إدارة المدرسة
-
-محتوى التعميم:
-${file.title}
-
-التعليمات:
-• الاطلاع على التعميم
-• الالتزام بالتعليمات
-• التواصل مع الإدارة للاستفسار
-
-ملاحظات:
-- هذا التعميم ساري المفعول
-- يرجى التنفيذ فوراً
-`;
-                    break;
-                    
-                case 'الأدلة واللوائح والأنظمة':
-                    baseContent += `
-دليل إجرائي - مدرسة عمرو بن العاص
-
-اسم الدليل: ${file.title}
-الإصدار: الأول
-تاريخ الإصدار: ${file.date}
-
-محتويات الدليل:
-1. المقدمة والأهداف
-2. الإجراءات العامة
-3. المسؤوليات والصلاحيات
-4. آلية التنفيذ
-5. نماذج العمل
-
-الأهداف:
-- توحيد الإجراءات
-- تحسين الأداء
-- تحقيق الجودة
-
-للاستفسار:
-- التوجه لإدارة المدرسة
-- مراجعة وكيل الشؤون التعليمية
-`;
-                    break;
-                    
-                case 'الخطة التشغيلية':
-                    baseContent += `
-الخطة التشغيلية - مدرسة عمرو بن العاص
-
-اسم الخطة: ${file.title}
-الفترة: الفصل الدراسي الثاني ${new Date().getFullYear()}
-تاريخ الإصدار: ${file.date}
-
-محاور الخطة:
-1. المحور الأكاديمي
-2. المحور الإداري
-3. المحور الطلابي
-4. المحور المجتمعي
-
-الأهداف الاستراتيجية:
-• رفع مستوى التحصيل الدراسي
-• تحسين البيئة التعليمية
-• تعزيز الشراكة المجتمعية
-
-مؤشرات الأداء:
-- نسبة تحقيق الأهداف: 95%
-- زمن التنفيذ: فصل دراسي
-- الميزانية: حسب التخصيص
-`;
-                    break;
-                    
-                default:
-                    baseContent += `
-محتوى الملف: ${file.title}
-
-تفاصيل المحتوى:
-هذا ملف تم إعداده من قبل إدارة المدرسة ويتضمن المعلومات والتفاصيل المتعلقة بـ${file.title}.
-
-التعليمات:
-1. الاطلاع الكامل على المحتوى
-2. الالتزام بالتوجيهات
-3. التواصل مع الإدارة للاستفسارات
-
-ملاحظات هامة:
-- يرجى حفظ هذا الملف للرجوع إليه عند الحاجة
-- يمكن تحميل الملف للاطلاع عليه في أي وقت
-- للاستفسارات يرجى التواصل مع إدارة المدرسة
-`;
-            }
-            
-            return baseContent;
+        // محاكاة حجم الملف
+        function getFileSize() {
+            const sizes = ['250 KB', '512 KB', '1.2 MB', '2.5 MB', '4.7 MB'];
+            return sizes[Math.floor(Math.random() * sizes.length)];
         }
 
         // إغلاق نافذة المعاينة
@@ -1197,10 +1112,7 @@ ${file.title}
             const link = document.createElement('a');
             link.style.display = 'none';
             
-            // إنشاء محتوى الملف الحقيقي
-            const fileContent = generateFileContent(file);
-            
-            // تحديد نوع الملف وامتداده
+            let content = '';
             let mimeType = 'text/plain;charset=utf-8';
             let extension = 'txt';
             let fileName = file.file_name || `${file.title}.${extension}`;
@@ -1224,9 +1136,33 @@ ${file.title}
                 };
                 
                 mimeType = mimeTypes[extension] || 'text/plain';
+                
+                // محتوى بسيط للملف
+                content = `
+تعميم مدرسي - ${file.title}
+
+التصنيف: ${file.category}
+التاريخ: ${file.date}
+${file.note ? `ملاحظات: ${file.note}` : ''}
+
+---
+هذا ملف تم إنشاؤه تلقائياً من نظام إدارة المدرسة.
+الملف الأصلي: ${file.file_name}
+        `;
+            } else {
+                // محتوى نصي للملفات بدون مرفق
+                content = `
+${file.title}
+
+التصنيف: ${file.category}
+التاريخ: ${file.date}
+${file.note ? `ملاحظات: ${file.note}` : ''}
+
+${file.note || 'لا يوجد محتوى نصي إضافي.'}
+        `;
             }
             
-            const blob = new Blob([fileContent], { type: mimeType });
+            const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             link.href = url;
             link.download = fileName;
