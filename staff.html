@@ -8,7 +8,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase.js"></script>
     <style>
-        /* جميع التنسيقات السابقة تبقى كما هي */
         :root {
             --primary: #2c5aa0;
             --primary-dark: #1e3d72;
@@ -530,6 +529,84 @@
             display: inline-block;
         }
 
+        /* نافذة معاينة الملف */
+        .file-preview-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-preview-modal.active {
+            display: flex;
+        }
+
+        .file-preview-content {
+            background: white;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-light);
+            background: var(--light);
+        }
+
+        .file-preview-body {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-preview-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .preview-iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .file-info {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .no-preview {
+            text-align: center;
+            color: var(--gray);
+            padding: 40px;
+        }
+
+        .no-preview i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: var(--gray-light);
+        }
+
         /* التجاوب */
         @media (max-width: 1024px) {
             .sidebar {
@@ -623,6 +700,15 @@
             .work-schedule-table td {
                 padding: 8px 4px;
             }
+
+            .file-preview-content {
+                width: 95%;
+                height: 95vh;
+            }
+            
+            .preview-iframe {
+                height: 400px;
+            }
         }
     </style>
 </head>
@@ -642,6 +728,30 @@
                     <i class="fas fa-check"></i>
                     تم الاطلاع على جميع الملفات
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة معاينة الملف -->
+    <div id="filePreviewModal" class="file-preview-modal">
+        <div class="file-preview-content">
+            <div class="file-preview-header">
+                <h3 id="previewFileName">معاينة الملف</h3>
+                <button class="close-modal" onclick="closeFilePreview()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="file-preview-body" id="filePreviewBody">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </div>
+            <div class="file-preview-footer">
+                <div class="file-info" id="filePreviewInfo"></div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="downloadPreviewedFile()">
+                        <i class="fas fa-download"></i>
+                        تحميل الملف
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -775,6 +885,173 @@
         let newFiles = [];
         let viewedFiles = JSON.parse(localStorage.getItem("viewedFiles")) || [];
         let fileReadStatus = {};
+        let currentPreviewFile = null;
+
+        // ========== دوال المعاينة والتحميل ==========
+
+        // دالة معاينة الملف
+        async function viewFile(fileId) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name
+                });
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+                // عرض الملف
+                await previewFile(fileId);
+                
+            } catch (error) {
+                console.error("خطأ في مشاهدة الملف:", error);
+                alert("حدث خطأ في معاينة الملف");
+            }
+        }
+
+        // دالة معاينة الملف
+        async function previewFile(fileId) {
+            try {
+                const files = await Database.getFiles();
+                const file = files.find(f => f.id === fileId);
+                
+                if (!file) {
+                    alert('الملف غير موجود');
+                    return;
+                }
+
+                currentPreviewFile = file;
+                
+                // تحديث معلومات الملف في النافذة
+                document.getElementById('previewFileName').textContent = file.title;
+                document.getElementById('filePreviewInfo').innerHTML = `
+                    <strong>${file.title}</strong> - ${file.category} - ${file.date}
+                `;
+                
+                const previewBody = document.getElementById('filePreviewBody');
+                
+                if (file.file_name) {
+                    // إذا كان الملف موجودًا، نقوم بعرضه
+                    const fileExtension = file.file_name.split('.').pop().toLowerCase();
+                    const fileUrl = await getFileUrl(file.file_name);
+                    
+                    if (fileExtension === 'pdf') {
+                        previewBody.innerHTML = `<iframe class="preview-iframe" src="${fileUrl}" type="application/pdf"></iframe>`;
+                    } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(fileExtension)) {
+                        previewBody.innerHTML = `<img src="${fileUrl}" style="max-width: 100%; max-height: 100%;" alt="${file.title}">`;
+                    } else if (['txt', 'doc', 'docx'].includes(fileExtension)) {
+                        // للملفات النصية ومستندات الوورد، نستخدم iframe
+                        previewBody.innerHTML = `<iframe class="preview-iframe" src="${fileUrl}"></iframe>`;
+                    } else {
+                        previewBody.innerHTML = `
+                            <div class="no-preview">
+                                <i class="fas fa-file"></i>
+                                <p>لا يمكن معاينة هذا النوع من الملفات</p>
+                                <p>يمكنك تحميل الملف ومشاهدته على جهازك</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    previewBody.innerHTML = `
+                        <div class="no-preview">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>لا يوجد ملف مرفوع</p>
+                            <p>هذا المحتوى لا يحتوي على ملف مرفوع</p>
+                        </div>
+                    `;
+                }
+                
+                // إظهار نافذة المعاينة
+                document.getElementById('filePreviewModal').classList.add('active');
+                
+            } catch (error) {
+                console.error('خطأ في معاينة الملف:', error);
+                alert('حدث خطأ في معاينة الملف');
+            }
+        }
+
+        // دالة الحصول على رابط الملف
+        async function getFileUrl(fileName) {
+            try {
+                const fileUrl = await Database.getFileUrl(`files/${fileName}`);
+                return fileUrl || `files/${fileName}`;
+            } catch (error) {
+                console.error('خطأ في جلب رابط الملف:', error);
+                return `files/${fileName}`;
+            }
+        }
+
+        // دالة إغلاق معاينة الملف
+        function closeFilePreview() {
+            document.getElementById('filePreviewModal').classList.remove('active');
+            currentPreviewFile = null;
+        }
+
+        // دالة تحميل الملف المعروض
+        function downloadPreviewedFile() {
+            if (currentPreviewFile && currentPreviewFile.file_name) {
+                downloadFile(currentPreviewFile.id);
+            } else {
+                alert('لا يوجد ملف للتحميل');
+            }
+        }
+
+        // دالة تحميل الملف (محدثة)
+        async function downloadFile(fileId) {
+            try {
+                const files = await Database.getFiles();
+                const file = files.find(f => f.id === fileId);
+                
+                if (!file || !file.file_name) {
+                    alert('الملف غير موجود');
+                    return;
+                }
+
+                // محاكاة عملية التحميل
+                const fileUrl = await getFileUrl(file.file_name);
+                
+                // إنشاء رابط تحميل
+                const link = document.createElement('a');
+                link.href = fileUrl;
+                link.download = file.file_name;
+                link.target = '_blank';
+                
+                // إضافة الرابط للصفحة والنقر عليه برمجياً
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // تسجيل عملية التحميل في قاعدة البيانات
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                if (currentStaff) {
+                    await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                        read: true,
+                        read_date: new Date().toISOString(),
+                        staff_name: currentStaff.name,
+                        downloaded: true
+                    });
+                }
+                
+                alert(`يتم تحميل الملف: ${file.file_name}`);
+                
+            } catch (error) {
+                console.error('خطأ في تحميل الملف:', error);
+                alert('حدث خطأ في تحميل الملف');
+            }
+        }
+
+        // ========== باقي الدوال ==========
 
         // تسجيل الخروج
         function logout() {
@@ -1407,65 +1684,6 @@
                 
             } catch (error) {
                 console.error("خطأ:", error);
-            }
-        }
-
-        // مشاهدة الملف
-        async function viewFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم فتح الملف للمشاهدة
-                alert("تم تسجيل الاطلاع على الملف. في التطبيق الحقيقي، سيتم فتح الملف في نافذة جديدة أو في نفس الصفحة.");
-            } catch (error) {
-                console.error("خطأ في مشاهدة الملف:", error);
-            }
-        }
-
-        // تحميل الملف
-        async function downloadFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name,
-                    downloaded: true
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم تحميل الملف
-                alert("يتم الآن تحميل الملف. في التطبيق الحقيقي، سيبدأ تحميل الملف.");
-            } catch (error) {
-                console.error("خطأ في تحميل الملف:", error);
             }
         }
 
