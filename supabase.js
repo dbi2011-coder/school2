@@ -135,7 +135,7 @@ const Database = {
         return { data, error };
     },
 
-    // دوال حالة الاطلاع
+    // دوال حالة الاطلاع المحسنة
     async getFileReadStatus() {
         const { data, error } = await supabase
             .from('file_read_status')
@@ -149,72 +149,40 @@ const Database = {
             .upsert({
                 file_id: fileId,
                 staff_id: staffId,
-                ...status
+                read: status.read || false,
+                read_date: status.read_date || null,
+                staff_name: status.staff_name || '',
+                downloaded: status.downloaded || false,
+                download_date: status.download_date || null,
+                read_count: status.read_count || 0,
+                download_count: status.download_count || 0,
+                last_access: new Date().toISOString()
             }, { onConflict: 'file_id,staff_id' });
         return { data, error };
     },
 
     formatFileReadStatus(data) {
         const status = {};
-        data.forEach(item => {
-            if (!status[item.file_id]) {
-                status[item.file_id] = {};
-            }
-            status[item.file_id][item.staff_id] = {
-                read: item.read,
-                read_date: item.read_date,
-                staff_name: item.staff_name,
-                downloaded: item.downloaded
-            };
-        });
+        if (data) {
+            data.forEach(item => {
+                if (!status[item.file_id]) {
+                    status[item.file_id] = {};
+                }
+                status[item.file_id][item.staff_id] = {
+                    read: item.read,
+                    read_date: item.read_date,
+                    staff_name: item.staff_name,
+                    downloaded: item.downloaded,
+                    download_date: item.download_date,
+                    read_count: item.read_count,
+                    download_count: item.download_count,
+                    last_access: item.last_access
+                };
+            });
+        }
         return status;
     }
 };
 
 // تصدير الكائن للاستخدام في الملفات الأخرى
 window.Database = Database;
-// دوال حالة الاطلاع المحسنة
-async function getFileReadStatus() {
-    const { data, error } = await supabase
-        .from('file_read_status')
-        .select('*');
-    return error ? {} : this.formatFileReadStatus(data);
-},
-
-async function updateFileReadStatus(fileId, staffId, status) {
-    const { data, error } = await supabase
-        .from('file_read_status')
-        .upsert({
-            file_id: fileId,
-            staff_id: staffId,
-            read: status.read || false,
-            read_date: status.read_date || null,
-            staff_name: status.staff_name || '',
-            downloaded: status.downloaded || false,
-            download_date: status.download_date || null,
-            read_count: status.read_count || 0,
-            download_count: status.download_count || 0,
-            last_access: new Date().toISOString()
-        }, { onConflict: 'file_id,staff_id' });
-    return { data, error };
-},
-
-formatFileReadStatus(data) {
-    const status = {};
-    data.forEach(item => {
-        if (!status[item.file_id]) {
-            status[item.file_id] = {};
-        }
-        status[item.file_id][item.staff_id] = {
-            read: item.read,
-            read_date: item.read_date,
-            staff_name: item.staff_name,
-            downloaded: item.downloaded,
-            download_date: item.download_date,
-            read_count: item.read_count,
-            download_count: item.download_count,
-            last_access: item.last_access
-        };
-    });
-    return status;
-}
