@@ -392,7 +392,7 @@
             border-radius: var(--border-radius);
             padding: 30px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             box-shadow: var(--shadow-lg);
             max-height: 90vh;
             overflow-y: auto;
@@ -631,15 +631,21 @@
     <div id="newFilesModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>الملفات الجديدة المرسلة لك</h3>
+                <h3><i class="fas fa-bell"></i> الملفات الجديدة المرسلة لك</h3>
+                <button class="close-modal" onclick="closeNewFilesModal()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
             <div class="modal-body">
-                <p>يوجد لديك ملفات جديدة تحتاج إلى الاطلاع عليها. يرجى الاطلاع على الملفات التالية:</p>
-                <div id="newFilesList" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
+                <p>يوجد لديك <strong id="newFilesCount">0</strong> ملفات جديدة تحتاج إلى الاطلاع عليها:</p>
+                <div id="newFilesList" style="margin-top: 15px; max-height: 400px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; padding: 10px;"></div>
+                <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 4px; font-size: 14px;">
+                    <i class="fas fa-info-circle"></i> سيتم إغلاق النافذة تلقائياً بعد معاينة جميع الملفات
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" onclick="acknowledgeNewFiles()">
-                    <i class="fas fa-check"></i>
+                    <i class="fas fa-check-double"></i>
                     تم الاطلاع على جميع الملفات
                 </button>
             </div>
@@ -682,7 +688,7 @@
 
             <div class="content-area">
                 <!-- قسم الملفات -->
-                <section id="files-section" class="content-section">
+                <section id="files-section" class="content-section active">
                     <div class="section-header">
                         <h2>
                             <i class="fas fa-folder-open"></i>
@@ -783,6 +789,11 @@
             window.location.href = "index.html";
         }
 
+        // إغلاق نافذة الملفات الجديدة
+        function closeNewFilesModal() {
+            document.getElementById("newFilesModal").classList.remove("active");
+        }
+
         // تحميل الملفات الموجهة للموظف
         async function loadUserFiles() {
             try {
@@ -843,17 +854,37 @@
         // عرض نافذة الملفات الجديدة
         function showNewFilesModal() {
             const newFilesList = document.getElementById("newFilesList");
-            newFilesList.innerHTML = newFiles.map(file => `
-                <div class="file-item">
-                    <div>
-                        <strong>${file.title}</strong>
-                        <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                            ${file.category} - ${file.date}
+            const newFilesCount = document.getElementById("newFilesCount");
+            
+            newFilesCount.textContent = newFiles.length;
+            
+            newFilesList.innerHTML = newFiles.map(file => {
+                const isViewed = viewedFiles.includes(file.id);
+                return `
+                    <div class="file-item" id="file-${file.id}" style="display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #eee; transition: all 0.3s ease;">
+                        <div style="flex: 1;">
+                            <strong>${file.title}</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                ${file.category} - ${file.date}
+                            </div>
+                            ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${file.note}</div>` : ''}
+                            ${file.file_name ? `<div style="font-size: 12px; color: #007bff; margin-top: 2px;"><i class="fas fa-file"></i> ${file.file_name}</div>` : ''}
                         </div>
-                        ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${file.note}</div>` : ''}
+                        <div class="file-actions" style="display: flex; gap: 8px; align-items: center;">
+                            ${file.file_name ? `
+                                <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}', true)" style="white-space: nowrap;">
+                                    <i class="fas fa-download"></i>
+                                    تحميل
+                                </button>
+                            ` : ''}
+                            <button class="btn btn-primary btn-sm" onclick="viewFile('${file.id}', true)" id="view-btn-${file.id}" style="white-space: nowrap;">
+                                <i class="fas fa-eye"></i>
+                                ${isViewed ? 'معاينة' : 'مشاهدة'}
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             document.getElementById("newFilesModal").classList.add("active");
         }
@@ -885,6 +916,126 @@
             }
         }
 
+        // دالة معاينة الملف مع تحديث الحالة
+        async function viewFile(fileId, fromModal = false) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تحديث زر المعاينة في النافذة
+                if (fromModal) {
+                    const viewButton = document.getElementById(`view-btn-${fileId}`);
+                    if (viewButton) {
+                        viewButton.innerHTML = '<i class="fas fa-check"></i> تمت المعاينة';
+                        viewButton.classList.remove('btn-primary');
+                        viewButton.classList.add('btn-success');
+                        viewButton.disabled = true;
+                    }
+                    
+                    // إخفاء العنصر أو تمييزه
+                    const fileElement = document.getElementById(`file-${fileId}`);
+                    if (fileElement) {
+                        fileElement.style.opacity = '0.7';
+                        fileElement.style.backgroundColor = '#f8f9fa';
+                    }
+                }
+                
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name
+                });
+                
+                // التحقق إذا كانت جميع الملفات قد تمت معاينتها
+                if (fromModal) {
+                    checkAllFilesViewed();
+                }
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+                // في تطبيق حقيقي، هنا سيتم فتح الملف للمشاهدة
+                alert("تم تسجيل الاطلاع على الملف. في التطبيق الحقيقي، سيتم فتح الملف في نافذة جديدة أو في نفس الصفحة.");
+            } catch (error) {
+                console.error("خطأ في مشاهدة الملف:", error);
+                alert("حدث خطأ في معاينة الملف");
+            }
+        }
+
+        // دالة تحميل الملف مع تحديث الحالة
+        async function downloadFile(fileId, fromModal = false) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تحديث زر المعاينة في النافذة
+                if (fromModal) {
+                    const viewButton = document.getElementById(`view-btn-${fileId}`);
+                    if (viewButton) {
+                        viewButton.innerHTML = '<i class="fas fa-check"></i> تمت المعاينة';
+                        viewButton.classList.remove('btn-primary');
+                        viewButton.classList.add('btn-success');
+                        viewButton.disabled = true;
+                    }
+                    
+                    // إخفاء العنصر أو تمييزه
+                    const fileElement = document.getElementById(`file-${fileId}`);
+                    if (fileElement) {
+                        fileElement.style.opacity = '0.7';
+                        fileElement.style.backgroundColor = '#f8f9fa';
+                    }
+                }
+                
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name,
+                    downloaded: true
+                });
+                
+                // التحقق إذا كانت جميع الملفات قد تمت معاينتها
+                if (fromModal) {
+                    checkAllFilesViewed();
+                }
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+                // محاكاة تحميل الملف
+                alert(`يتم الآن تحميل الملف: ${fileId}`);
+                
+            } catch (error) {
+                console.error("خطأ في تحميل الملف:", error);
+                alert("حدث خطأ في تحميل الملف");
+            }
+        }
+
+        // دالة للتحقق إذا تمت معاينة جميع الملفات
+        function checkAllFilesViewed() {
+            const allViewed = newFiles.every(file => viewedFiles.includes(file.id));
+            if (allViewed) {
+                // إغلاق النافذة تلقائياً بعد 2 ثانية
+                setTimeout(() => {
+                    document.getElementById("newFilesModal").classList.remove("active");
+                    initializeStaffInterface();
+                }, 2000);
+            }
+        }
+
         // تهيئة واجهة الموظف
         async function initializeStaffInterface() {
             await loadCategoriesNav();
@@ -892,7 +1043,7 @@
             await loadEvents();
             await loadTeacherSchedule();
             await loadTeachersSchedule();
-            await loadWorkScheduleInfo();
+            await showAllWorkSchedules();
             
             // إظهار قسم الملفات افتراضيًا بشكل آمن
             setTimeout(() => {
@@ -1410,65 +1561,6 @@
             }
         }
 
-        // مشاهدة الملف
-        async function viewFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم فتح الملف للمشاهدة
-                alert("تم تسجيل الاطلاع على الملف. في التطبيق الحقيقي، سيتم فتح الملف في نافذة جديدة أو في نفس الصفحة.");
-            } catch (error) {
-                console.error("خطأ في مشاهدة الملف:", error);
-            }
-        }
-
-        // تحميل الملف
-        async function downloadFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name,
-                    downloaded: true
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم تحميل الملف
-                alert("يتم الآن تحميل الملف. في التطبيق الحقيقي، سيبدأ تحميل الملف.");
-            } catch (error) {
-                console.error("خطأ في تحميل الملف:", error);
-            }
-        }
-
         // طباعة الجدول الدراسي
         function printSchedule() {
             const scheduleContent = document.getElementById("teacherSchedule").innerHTML;
@@ -1663,20 +1755,6 @@
             displayUserName();
             await checkNewFiles();
         });
-
-        // استبدال السطر في initializeStaffInterface بهذا:
-        async function initializeStaffInterface() {
-            await loadCategoriesNav();
-            await loadFiles();
-            await loadEvents();
-            await loadTeacherSchedule();
-            await loadTeachersSchedule();
-            await showAllWorkSchedules(); // بدل loadWorkScheduleInfo
-            
-            setTimeout(() => {
-                showSection('files');
-            }, 100);
-        }
     </script>
 </body>
 </html>
