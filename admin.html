@@ -2928,19 +2928,62 @@
             return schedule;
         }
 
-        // تحميل جدول المعلم
+        // التأكد من اكتمال الجدول
+        function ensureCompleteSchedule(schedule) {
+            const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+            const periods = 7;
+            
+            const completeSchedule = {};
+            
+            days.forEach(day => {
+                if (!schedule[day]) {
+                    completeSchedule[day] = [];
+                    for (let i = 0; i < periods; i++) {
+                        completeSchedule[day].push({ subject: '', class: '' });
+                    }
+                } else {
+                    completeSchedule[day] = [...schedule[day]];
+                    // التأكد من أن كل يوم يحتوي على 7 حصص
+                    while (completeSchedule[day].length < periods) {
+                        completeSchedule[day].push({ subject: '', class: '' });
+                    }
+                    while (completeSchedule[day].length > periods) {
+                        completeSchedule[day].pop();
+                    }
+                }
+            });
+            
+            return completeSchedule;
+        }
+
+        // تحميل جدول المعلم (مُصلح)
         async function loadTeacherSchedule() {
             const teacherId = document.getElementById("scheduleTeacher").value;
-            if (!teacherId) return;
+            if (!teacherId) {
+                // إعادة تعيين الجدول إذا لم يتم اختيار معلم
+                renderSchedule(createEmptySchedule());
+                return;
+            }
 
             try {
                 const schedules = await Database.getSchedules();
-                const teacherSchedule = schedules.find(s => s.teacher_id === teacherId) || 
-                    { teacher_id: teacherId, schedule: createEmptySchedule() };
-
-                renderSchedule(teacherSchedule.schedule);
+                let teacherSchedule = schedules.find(s => s.teacher_id === teacherId);
+                
+                // إذا لم يكن هناك جدول للمعلم، إنشاء جدول فارغ
+                if (!teacherSchedule) {
+                    teacherSchedule = {
+                        teacher_id: teacherId,
+                        schedule: createEmptySchedule()
+                    };
+                }
+                
+                // التأكد من أن الجدول يحتوي على جميع الأيام
+                const completeSchedule = ensureCompleteSchedule(teacherSchedule.schedule);
+                renderSchedule(completeSchedule);
             } catch (error) {
                 console.error("خطأ في جلب جدول المعلم:", error);
+                // عرض جدول فارغ في حالة الخطأ
+                renderSchedule(createEmptySchedule());
             }
         }
 
@@ -2978,28 +3021,39 @@
             grid.innerHTML = html;
         }
 
-        // فتح modal لتعديل الحصة
+        // فتح modal لتعديل الحصة (مُصلح)
         async function openScheduleModal(day, period) {
             currentDay = day;
             currentPeriod = period;
             
             try {
-                const schedules = await Database.getSchedules();
                 const teacherId = document.getElementById("scheduleTeacher").value;
+                if (!teacherId) {
+                    alert("يرجى اختيار موظف أولاً");
+                    return;
+                }
+
+                const schedules = await Database.getSchedules();
                 const teacherSchedule = schedules.find(s => s.teacher_id === teacherId);
                 
-                if (teacherSchedule) {
+                let subject = '';
+                let classValue = '';
+                
+                if (teacherSchedule && teacherSchedule.schedule && teacherSchedule.schedule[day]) {
                     const slot = teacherSchedule.schedule[day][period];
-                    document.getElementById("modalSubject").value = slot.subject || '';
-                    document.getElementById("modalClass").value = slot.class || '';
-                } else {
-                    document.getElementById("modalSubject").value = '';
-                    document.getElementById("modalClass").value = '';
+                    if (slot) {
+                        subject = slot.subject || '';
+                        classValue = slot.class || '';
+                    }
                 }
+                
+                document.getElementById("modalSubject").value = subject;
+                document.getElementById("modalClass").value = classValue;
                 
                 document.getElementById("scheduleModal").classList.add("active");
             } catch (error) {
                 console.error("خطأ في فتح نافذة تعديل الحصة:", error);
+                alert("حدث خطأ في فتح نافذة التعديل");
             }
         }
 
@@ -3008,7 +3062,7 @@
             document.getElementById("scheduleModal").classList.remove("active");
         }
 
-        // حفظ الحصة
+        // حفظ الحصة (مُصلح)
         async function saveScheduleSlot() {
             const subject = document.getElementById("modalSubject").value;
             const classValue = document.getElementById("modalClass").value;
@@ -3030,6 +3084,10 @@
                     };
                 }
                 
+                // التأكد من أن الجدول كامل
+                teacherSchedule.schedule = ensureCompleteSchedule(teacherSchedule.schedule);
+                
+                // تحديث الحصة المحددة
                 teacherSchedule.schedule[currentDay][currentPeriod] = {
                     subject: subject,
                     class: classValue
@@ -3050,7 +3108,7 @@
             }
         }
 
-        // حذف الحصة
+        // حذف الحصة (مُصلح)
         async function deleteScheduleSlot() {
             const teacherId = document.getElementById("scheduleTeacher").value;
             
@@ -3070,6 +3128,10 @@
                     };
                 }
                 
+                // التأكد من أن الجدول كامل
+                teacherSchedule.schedule = ensureCompleteSchedule(teacherSchedule.schedule);
+                
+                // حذف الحصة المحددة
                 teacherSchedule.schedule[currentDay][currentPeriod] = {
                     subject: '',
                     class: ''
