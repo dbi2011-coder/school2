@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منسوبي المدرسة - مدرسة عمرو بن العاص</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase.js"></script>
+    <style>
+        /* جميع التنسيقات السابقة تبقى كما هي */
+        :root {
+            --primary: #2c5aa0;
+            --primary-dark: #1e3d72;
+            --primary-light: #4a7bc8;
+            --secondary: #4caf50;
+            --secondary-dark: #3d8b40;
+            --accent: #ff9800;
+            --accent-dark: #e68900;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+            --border-radius: 8px;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 5px 15px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+            direction: rtl;
+        }
+
+        .staff-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* الشريط الجانبي للتصنيفات */
+        .sidebar {
+            width: 280px;
+            background: white;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 25px 20px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            text-align: center;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            margin-bottom: 5px;
+        }
+
+        .nav-item a {
+            display: flex;
+            align-items: center;
+            padding: 12px 25px;
+            color: var(--dark);
+            text-decoration: none;
+            transition: var(--transition);
+            border-right: 3px solid transparent;
+        }
+
+        .nav-item a:hover,
+        .nav-item.active a {
+            background: var(--light);
+            color: var(--primary);
+            border-right-color: var(--accent);
+        }
+
+        .nav-item i {
+            margin-left: 12px;
+            font-size: 18px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-right: auto;
+            margin-left: 10px;
+        }
+
+        /* المحتوى الرئيسي */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .staff-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-info h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header-info p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-welcome {
+            font-size: 16px;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* أقسام المحتوى */
+        .content-section {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            overflow: hidden;
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            padding: 20px 25px;
+            border-bottom: 1px solid var(--gray-light);
+            background: var(--light);
+        }
+
+        .section-header h2 {
+            font-size: 18px;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-body {
+            padding: 25px;
+        }
+
+        /* بطاقات التصنيفات */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .category-card {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .category-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .category-header {
+            background: var(--light);
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--gray-light);
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .category-files {
+            padding: 0;
+        }
+
+        .file-item {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: var(--transition);
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item:hover {
+            background: var(--light);
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .file-date {
+            font-size: 12px;
+            color: var(--gray);
+            background: var(--gray-light);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        /* الأحداث */
+        .calendar-events {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .event-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .event-card:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .event-days {
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 14px;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        .event-days.expired {
+            background-color: #6c757d;
+        }
+
+        /* المعلومات السريعة */
+        .quick-info {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            transition: var(--transition);
+        }
+
+        .info-item:hover {
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+        }
+
+        .info-item i {
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .info-item h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+
+        .info-item p {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* الجداول */
+        .schedule-container {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+
+        .table-actions {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            min-width: 800px;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            border: 1px solid var(--gray-light);
+            padding: 10px;
+            text-align: center;
+        }
+
+        .schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .schedule-table .teacher-name {
+            background-color: var(--light);
+            font-weight: 600;
+            text-align: right;
+            padding: 12px;
+        }
+
+        /* نافذة الاطلاع */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: var(--shadow-lg);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--gray);
+        }
+
+        .modal-body {
+            margin-bottom: 20px;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* الأزرار */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-success {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--gray);
+            color: var(--dark);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--gray-light);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .badge {
+            background: #ff9800;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin-right: 8px;
+        }
+
+        /* أنماط جدول توقيت الدوام */
+        .work-schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .work-schedule-table th,
+        .work-schedule-table td {
+            border: 1px solid var(--gray-light);
+            padding: 12px;
+            text-align: center;
+        }
+
+        .work-schedule-table th {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 600;
+        }
+
+        .work-schedule-table tr:nth-child(even) {
+            background-color: var(--light);
+        }
+
+        .work-schedule-table tr:hover {
+            background-color: #f0f5ff;
+        }
+
+        .time-type-badge {
+            background: var(--accent);
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        /* نمط الملف في النافذة المنبثقة */
+        .file-modal-item {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            background: var(--light);
+        }
+
+        .file-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-modal-content {
+            background: white;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* تنسيقات إضافية للملفات */
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .file-size {
+            color: #007bff;
+        }
+
+        .file-type {
+            color: #28a745;
+        }
+
+        .file-uploaded {
+            color: #28a745;
+        }
+
+        /* التجاوب */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-header h2,
+            .nav-item span,
+            .nav-badge {
+                display: none;
+            }
+            
+            .nav-item a {
+                justify-content: center;
+                padding: 15px;
+            }
+            
+            .nav-item i {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .staff-layout {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+            }
+            
+            .sidebar-nav {
+                display: flex;
+                overflow-x: auto;
+                padding: 15px;
+            }
+            
+            .nav-item {
+                margin-bottom: 0;
+                flex: 0 0 auto;
+            }
+            
+            .nav-item a {
+                border-right: none;
+                border-bottom: 3px solid transparent;
+                flex-direction: column;
+                padding: 10px 15px;
+                font-size: 12px;
+            }
+            
+            .nav-item.active a {
+                border-right-color: transparent;
+                border-bottom-color: var(--accent);
+            }
+            
+            .nav-item i {
+                margin-left: 0;
+                margin-bottom: 5px;
+                font-size: 16px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .categories-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-actions {
+                flex-direction: column;
+            }
+            
+            .file-actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+
+            .work-schedule-table {
+                font-size: 12px;
+            }
+            
+            .work-schedule-table th,
+            .work-schedule-table td {
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- نافذة الاطلاع على الملفات الجديدة -->
+    <div id="newFilesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-bell"></i> الملفات الجديدة المرسلة لك</h3>
+            </div>
+            <div class="modal-body">
+                <p>يوجد لديك ملفات جديدة تحتاج إلى الاطلاع عليها. يرجى الاطلاع على جميع الملفات أدناه:</p>
+                <div id="newFilesList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة مشاهدة محتوى الملف -->
+    <div id="fileContentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="fileContentTitle"><i class="fas fa-file"></i> محتوى الملف</h3>
+                <button class="close-modal" onclick="closeFileContentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="fileContentDisplay" class="file-modal-content">
+                    <!-- سيتم ملؤها بمحتوى الملف -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeFileContentModal()">
+                    <i class="fas fa-check"></i>
+                    تم الاطلاع
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="staff-layout">
+        <!-- الشريط الجانبي للتصنيفات -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-folder"></i> التصنيفات</h2>
+            </div>
+            <ul class="sidebar-nav" id="categoriesNav">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </ul>
+        </nav>
+
+        <main class="main-content">
+            <header class="staff-header">
+                <div class="header-content">
+                    <div class="header-info">
+                        <h1>
+                            <i class="fas fa-school"></i>
+                            بوابة منسوبي المدرسة
+                        </h1>
+                        <p>مرحبًا بك في نظام إدارة المدرسة</p>
+                    </div>
+                    
+                    <div class="header-actions">
+                        <div class="user-welcome">
+                            <span>مرحبًا، <strong id="staffUserName"></strong></span>
+                        </div>
+                        <button class="btn btn-outline" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            تسجيل الخروج
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-area">
+                <!-- قسم الملفات -->
+                <section id="files-section" class="content-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-folder-open"></i>
+                            الملفات المتاحة
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="categories-grid" id="fileCategories">
+                            <!-- سيتم ملؤها بالبيانات -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- قسم التقويم الدراسي -->
+                <section id="calendar-section" class="content-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-calendar-alt"></i>
+                            التقويم الدراسي
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="calendar-events" id="calendarList">
+                            <!-- سيتم ملؤها بالبيانات -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- قسم الجدول الدراسي -->
+                <section id="schedule-section" class="content-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-table"></i>
+                            الجدول الدراسي
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-actions">
+                            <button class="btn btn-outline" onclick="printSchedule()">
+                                <i class="fas fa-print"></i>
+                                طباعة الجدول
+                            </button>
+                        </div>
+                        <div class="schedule-container">
+                            <div id="teacherSchedule"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- قسم الجدول العام للمعلمين -->
+                <section id="teachers-schedule-section" class="content-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            الجدول العام للمعلمين
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <div class="table-actions">
+                            <button class="btn btn-outline" onclick="printTeachersSchedule()">
+                                <i class="fas fa-print"></i>
+                                طباعة الجدول
+                            </button>
+                        </div>
+                        <div class="schedule-container">
+                            <div id="teachersSchedule"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- قسم المعلومات السريعة -->
+                <section id="info-section" class="content-section">
+                    <div class="section-header">
+                        <h2>
+                            <i class="fas fa-info-circle"></i>
+                            معلومات سريعة
+                        </h2>
+                    </div>
+                    <div class="section-body">
+                        <!-- هذا هو العنصر الذي سيعرض جدول التوقيت -->
+                        <div id="workScheduleInfo"></div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // البيانات والمتغيرات
+        let newFiles = [];
+        let viewedFiles = JSON.parse(localStorage.getItem("viewedFiles")) || [];
+        let fileReadStatus = {};
+        let currentViewingFileIndex = 0;
+
+        // تسجيل الخروج
+        function logout() {
+            localStorage.removeItem("role");
+            localStorage.removeItem("currentStaff");
+            window.location.href = "index.html";
+        }
+
+        // تحميل الملفات الموجهة للموظف
+        async function loadUserFiles() {
+            try {
+                const files = await Database.getFiles();
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                
+                if (!currentStaff) return [];
+                
+                // تصفية الملفات الموجهة للموظف الحالي
+                const userFiles = files.filter(file => {
+                    // التحقق إذا كان الموظف مستهدف بالاسم
+                    if (file.target_staff && file.target_staff.includes(currentStaff.id)) {
+                        return true;
+                    }
+                    
+                    // التحقق إذا كان الموظف معلم والملف موجه لمادته
+                    if (currentStaff.jobs && currentStaff.jobs.includes("معلم") && 
+                        file.target_subjects && file.target_subjects.some(subject => 
+                            currentStaff.subjects && currentStaff.subjects.includes(subject)
+                        )) {
+                        return true;
+                    }
+                    
+                    // التحقق إذا كان الملف موجه لصفوف المعلم
+                    if (currentStaff.jobs && currentStaff.jobs.includes("معلم") && 
+                        file.target_classes && file.target_classes.some(cls => 
+                            currentStaff.classes && currentStaff.classes.includes(cls)
+                        )) {
+                        return true;
+                    }
+                    
+                    return false;
+                });
+                
+                return userFiles;
+            } catch (error) {
+                console.error("خطأ في جلب الملفات:", error);
+                return [];
+            }
+        }
+
+        // التحقق من الملفات الجديدة
+        async function checkNewFiles() {
+            try {
+                const userFiles = await loadUserFiles();
+                newFiles = userFiles.filter(file => !viewedFiles.includes(file.id));
+                
+                if (newFiles.length > 0) {
+                    showNewFilesModal();
+                } else {
+                    await initializeStaffInterface();
+                }
+            } catch (error) {
+                console.error("خطأ في التحقق من الملفات الجديدة:", error);
+            }
+        }
+
+        // عرض نافذة الملفات الجديدة
+        function showNewFilesModal() {
+            const newFilesList = document.getElementById("newFilesList");
+            newFilesList.innerHTML = newFiles.map((file, index) => `
+                <div class="file-modal-item">
+                    <div class="file-modal-header">
+                        <div>
+                            <strong>${file.title}</strong>
+                            <div class="file-info">
+                                ${file.category} - ${file.date}
+                                ${file.file_size ? ` - <span class="file-size">${(file.file_size / 1024 / 1024).toFixed(2)} MB</span>` : ''}
+                                ${file.file_type ? ` - <span class="file-type">${file.file_type}</span>` : ''}
+                            </div>
+                            ${file.note ? `<div class="file-info">${file.note}</div>` : ''}
+                            ${file.file_url ? `<div class="file-uploaded"><i class="fas fa-check-circle"></i> ملف مرفوع</div>` : ''}
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="viewNewFileContent(${index})">
+                            <i class="fas fa-eye"></i>
+                            مشاهدة المحتوى
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById("newFilesModal").classList.add("active");
+            
+            // منع إغلاق النافذة
+            document.getElementById("newFilesModal").style.pointerEvents = 'auto';
+        }
+
+        // مشاهدة محتوى ملف جديد
+        async function viewNewFileContent(fileIndex) {
+            const file = newFiles[fileIndex];
+            currentViewingFileIndex = fileIndex;
+            
+            // إذا كان هناك ملف فعلي مرفوع
+            if (file.file_url) {
+                // فتح الملف في نافذة جديدة
+                window.open(file.file_url, '_blank');
+                
+                // تسجيل الاطلاع
+                await markFileAsViewed(file.id);
+                
+                // إزالة الملف من قائمة الملفات الجديدة
+                newFiles.splice(currentViewingFileIndex, 1);
+                
+                // إذا لم يتبقى ملفات جديدة، إغلاق النافذة الرئيسية
+                if (newFiles.length === 0) {
+                    document.getElementById("newFilesModal").classList.remove("active");
+                    await initializeStaffInterface();
+                } else {
+                    // تحديث قائمة الملفات الجديدة
+                    showNewFilesModal();
+                }
+            } else {
+                // إذا لم يكن هناك ملف فعلي، عرض محتوى افتراضي
+                document.getElementById("fileContentTitle").textContent = file.title;
+                
+                const fileContent = `
+                    <h4>${file.title}</h4>
+                    <p><strong>التصنيف:</strong> ${file.category}</p>
+                    <p><strong>التاريخ:</strong> ${file.date}</p>
+                    ${file.note ? `<p><strong>ملاحظات:</strong> ${file.note}</p>` : ''}
+                    <hr>
+                    <div style="margin-top: 20px;">
+                        <p>هذا الملف لا يحتوي على محتوى مرفوع. يرجى التواصل مع الإدارة إذا كنت بحاجة إلى محتوى هذا الملف.</p>
+                    </div>
+                `;
+                
+                document.getElementById("fileContentDisplay").innerHTML = fileContent;
+                document.getElementById("fileContentModal").classList.add("active");
+            }
+        }
+
+        // إغلاق نافذة محتوى الملف
+        async function closeFileContentModal() {
+            const file = newFiles[currentViewingFileIndex];
+            
+            // تسجيل الاطلاع على الملف
+            await markFileAsViewed(file.id);
+            
+            // إزالة الملف من قائمة الملفات الجديدة
+            newFiles.splice(currentViewingFileIndex, 1);
+            
+            // إغلاق النافذة
+            document.getElementById("fileContentModal").classList.remove("active");
+            
+            // إذا لم يتبقى ملفات جديدة، إغلاق النافذة الرئيسية
+            if (newFiles.length === 0) {
+                document.getElementById("newFilesModal").classList.remove("active");
+                await initializeStaffInterface();
+            } else {
+                // تحديث قائمة الملفات الجديدة
+                showNewFilesModal();
+            }
+        }
+
+        // تسجيل الملف كمشاهد
+        async function markFileAsViewed(fileId) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name,
+                    read_count: 1
+                });
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+            } catch (error) {
+                console.error("خطأ في تسجيل الاطلاع:", error);
+            }
+        }
+
+        // تهيئة واجهة الموظف
+        async function initializeStaffInterface() {
+            await loadCategoriesNav();
+            await loadFiles();
+            await loadEvents();
+            await loadTeacherSchedule();
+            await loadTeachersSchedule();
+            await showAllWorkSchedules();
+            
+            // إظهار قسم الملفات افتراضيًا بشكل آمن
+            setTimeout(() => {
+                showSection('files');
+            }, 100);
+        }
+
+        // تحميل قائمة التصنيفات في الشريط الجانبي
+        async function loadCategoriesNav() {
+            try {
+                const userFiles = await loadUserFiles();
+                const categories = [...new Set(userFiles.map(f => f.category))];
+                const container = document.getElementById("categoriesNav");
+                
+                container.innerHTML = categories.map(cat => {
+                    const categoryFiles = userFiles.filter(f => f.category === cat);
+                    const newFilesCount = categoryFiles.filter(f => !viewedFiles.includes(f.id)).length;
+                    
+                    return `
+                        <li class="nav-item">
+                            <a href="#" onclick="showCategory('${cat}')">
+                                <i class="fas fa-folder"></i>
+                                <span>${cat}</span>
+                                ${newFilesCount > 0 ? `<span class="nav-badge">${newFilesCount}</span>` : ''}
+                            </a>
+                        </li>
+                    `;
+                }).join('') + `
+                    <li class="nav-item">
+                        <a href="#" onclick="showSection('calendar')">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>التقويم الدراسي</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" onclick="showSection('schedule')">
+                            <i class="fas fa-table"></i>
+                            <span>جدولي الدراسي</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" onclick="showSection('teachers-schedule')">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>الجدول العام</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" onclick="showSection('info')">
+                            <i class="fas fa-info-circle"></i>
+                            <span>معلومات سريعة</span>
+                        </a>
+                    </li>
+                `;
+            } catch (error) {
+                console.error("خطأ في تحميل التصنيفات:", error);
+            }
+        }
+
+        // إظهار قسم معين
+        function showSection(sectionId) {
+            // إخفاء جميع الأقسام
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // إزالة النشاط من جميع عناصر القائمة
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // إظهار القسم المحدد
+            const targetSection = document.getElementById(sectionId + '-section');
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // تعيين النشاط لعنصر القائمة المحدد (إذا وجد)
+            const navLink = document.querySelector(`.nav-item a[onclick="showSection('${sectionId}')"]`);
+            if (navLink && navLink.parentNode) {
+                navLink.parentNode.classList.add('active');
+            }
+        }
+
+        // إظهار تصنيف معين
+        async function showCategory(category) {
+            // إخفاء جميع الأقسام
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // إزالة النشاط من جميع عناصر القائمة
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // إظهار قسم الملفات
+            document.getElementById('files-section').classList.add('active');
+            
+            // تعيين النشاط لعنصر القائمة المحدد (إذا وجد)
+            const navLink = document.querySelector(`.nav-item a[onclick="showCategory('${category}')"]`);
+            if (navLink && navLink.parentNode) {
+                navLink.parentNode.classList.add('active');
+            }
+            
+            // تصفية الملفات حسب التصنيف
+            await filterFilesByCategory(category);
+        }
+
+        // تصفية الملفات حسب التصنيف
+        async function filterFilesByCategory(category) {
+            try {
+                const userFiles = await loadUserFiles();
+                const categoryFiles = userFiles.filter(f => f.category === category);
+                const container = document.getElementById("fileCategories");
+                
+                if (categoryFiles.length === 0) {
+                    container.innerHTML = '<p>لا توجد ملفات في هذا التصنيف</p>';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <div class="category-card">
+                        <div class="category-header">
+                            <i class="fas fa-folder"></i>
+                            ${category}
+                        </div>
+                        <div class="category-files">
+                            ${categoryFiles.map(file => {
+                                const isNew = !viewedFiles.includes(file.id);
+                                const isViewed = viewedFiles.includes(file.id);
+                                
+                                return `
+                                    <div class="file-item">
+                                        <div>
+                                            <strong>${file.title}</strong>
+                                            ${isNew ? `<span class="badge">جديد</span>` : ''}
+                                            <div class="file-info">
+                                                ${file.category} - ${file.date}
+                                                ${file.file_size ? ` - <span class="file-size">${(file.file_size / 1024 / 1024).toFixed(2)} MB</span>` : ''}
+                                                ${file.file_type ? ` - <span class="file-type">${file.file_type}</span>` : ''}
+                                            </div>
+                                            ${file.note ? `<div class="file-info">${file.note}</div>` : ''}
+                                            ${file.file_url ? `<div class="file-uploaded"><i class="fas fa-check-circle"></i> ملف مرفوع</div>` : ''}
+                                        </div>
+                                        <div class="file-actions">
+                                            <div class="file-date">${file.date}</div>
+                                            ${file.file_url ? `
+                                                <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}')">
+                                                    <i class="fas fa-download"></i>
+                                                    تحميل
+                                                </button>
+                                            ` : ''}
+                                            <button class="btn btn-primary btn-sm" onclick="viewFileContent('${file.id}')">
+                                                <i class="fas fa-eye"></i>
+                                                ${isViewed ? 'معاينة' : 'مشاهدة'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error("خطأ في تصفية الملفات:", error);
+            }
+        }
+
+        // تحميل جميع الملفات
+        async function loadFiles() {
+            try {
+                const userFiles = await loadUserFiles();
+                const categories = [...new Set(userFiles.map(f => f.category))];
+                const container = document.getElementById("fileCategories");
+
+                if (userFiles.length === 0) {
+                    container.innerHTML = '<p>لا توجد ملفات متاحة لك حالياً</p>';
+                    return;
+                }
+
+                container.innerHTML = categories.map(cat => {
+                    const categoryFiles = userFiles.filter(f => f.category === cat);
+                    
+                    return `
+                        <div class="category-card">
+                            <div class="category-header">
+                                <i class="fas fa-folder"></i>
+                                ${cat}
+                            </div>
+                            <div class="category-files">
+                                ${categoryFiles.map(file => {
+                                    const isNew = !viewedFiles.includes(file.id);
+                                    const isViewed = viewedFiles.includes(file.id);
+                                    
+                                    return `
+                                        <div class="file-item">
+                                            <div>
+                                                <strong>${file.title}</strong>
+                                                ${isNew ? `<span class="badge">جديد</span>` : ''}
+                                                <div class="file-info">
+                                                    ${file.category} - ${file.date}
+                                                    ${file.file_size ? ` - <span class="file-size">${(file.file_size / 1024 / 1024).toFixed(2)} MB</span>` : ''}
+                                                    ${file.file_type ? ` - <span class="file-type">${file.file_type}</span>` : ''}
+                                                </div>
+                                                ${file.note ? `<div class="file-info">${file.note}</div>` : ''}
+                                                ${file.file_url ? `<div class="file-uploaded"><i class="fas fa-check-circle"></i> ملف مرفوع</div>` : ''}
+                                            </div>
+                                            <div class="file-actions">
+                                                <div class="file-date">${file.date}</div>
+                                                ${file.file_url ? `
+                                                    <button class="btn btn-outline btn-sm" onclick="downloadFile('${file.id}')">
+                                                        <i class="fas fa-download"></i>
+                                                        تحميل
+                                                    </button>
+                                                ` : ''}
+                                                <button class="btn btn-primary btn-sm" onclick="viewFileContent('${file.id}')">
+                                                    <i class="fas fa-eye"></i>
+                                                    ${isViewed ? 'معاينة' : 'مشاهدة'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error("خطأ في تحميل الملفات:", error);
+            }
+        }
+
+        // مشاهدة محتوى الملف الفعلي
+        async function viewFileContent(fileId) {
+            try {
+                const userFiles = await loadUserFiles();
+                const file = userFiles.find(f => f.id === fileId);
+                
+                if (!file) return;
+                
+                // إذا كان هناك ملف فعلي مرفوع
+                if (file.file_url) {
+                    // فتح الملف في نافذة جديدة
+                    window.open(file.file_url, '_blank');
+                    
+                    // تسجيل الاطلاع
+                    await markFileAsViewed(fileId);
+                    await loadCategoriesNav();
+                    await loadFiles();
+                } else {
+                    // إذا لم يكن هناك ملف فعلي، عرض محتوى افتراضي
+                    document.getElementById("fileContentTitle").textContent = file.title;
+                    
+                    const fileContent = `
+                        <h4>${file.title}</h4>
+                        <p><strong>التصنيف:</strong> ${file.category}</p>
+                        <p><strong>التاريخ:</strong> ${file.date}</p>
+                        ${file.note ? `<p><strong>ملاحظات:</strong> ${file.note}</p>` : ''}
+                        <hr>
+                        <div style="margin-top: 20px;">
+                            <p>هذا الملف لا يحتوي على محتوى مرفوع. يرجى التواصل مع الإدارة إذا كنت بحاجة إلى محتوى هذا الملف.</p>
+                        </div>
+                    `;
+                    
+                    document.getElementById("fileContentDisplay").innerHTML = fileContent;
+                    document.getElementById("fileContentModal").classList.add("active");
+                    
+                    // تسجيل الاطلاع إذا كان الملف جديدًا
+                    if (!viewedFiles.includes(fileId)) {
+                        await markFileAsViewed(fileId);
+                        await loadCategoriesNav();
+                        await loadFiles();
+                    }
+                }
+                
+            } catch (error) {
+                console.error("خطأ في مشاهدة الملف:", error);
+            }
+        }
+
+        // تحميل الملف الفعلي
+        async function downloadFile(fileId) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                const userFiles = await loadUserFiles();
+                const file = userFiles.find(f => f.id === fileId);
+                
+                if (!file) return;
+                
+                // إذا كان هناك ملف فعلي مرفوع
+                if (file.file_url) {
+                    // إنشاء رابط تحميل
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = file.file_url;
+                    downloadLink.download = file.file_name || file.title;
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                } else {
+                    alert("لا يوجد ملف مرفوع للتحميل");
+                    return;
+                }
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تسجيل حالة الاطلاع والتحميل في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name,
+                    downloaded: true,
+                    download_date: currentTime,
+                    download_count: 1
+                });
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+            } catch (error) {
+                console.error("خطأ في تحميل الملف:", error);
+                alert("حدث خطأ في تحميل الملف");
+            }
+        }
+
+        // ========== باقي الدوال تبقى كما هي ==========
+
+        // تحميل الأحداث
+        async function loadEvents() {
+            try {
+                const events = await Database.getEvents();
+                const container = document.getElementById("calendarList");
+
+                events.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+                container.innerHTML = events.map(event => {
+                    const eventDate = new Date(event.date);
+                    const today = new Date();
+                    const diffTime = eventDate - today;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    
+                    let dayText = "اليوم";
+                    let badgeClass = "event-days";
+                    
+                    if (diffDays > 1) {
+                        dayText = `باقي ${diffDays} يوم`;
+                    } else if (diffDays === 1) {
+                        dayText = "غدًا";
+                    } else if (diffDays < 0) {
+                        dayText = "منتهي";
+                        badgeClass = "event-days expired";
+                    }
+                    
+                    return `
+                        <div class="event-card">
+                            <div class="${badgeClass}">${dayText}</div>
+                            <div>
+                                <strong>${event.title}</strong>
+                                <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                    ${eventDate.toLocaleDateString('ar-SA', { 
+                                        weekday: 'long', 
+                                        year: 'numeric', 
+                                        month: 'long', 
+                                        day: 'numeric' 
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error("خطأ في تحميل الأحداث:", error);
+            }
+        }
+
+        // تحميل جدول المعلم
+        async function loadTeacherSchedule() {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const schedules = await Database.getSchedules();
+                const teacherSchedule = schedules.find(s => s.teacher_id === currentStaff.id);
+                const container = document.getElementById("teacherSchedule");
+                
+                if (!teacherSchedule) {
+                    container.innerHTML = '<p>لا يوجد جدول مخصص لك</p>';
+                    return;
+                }
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>اليوم/الحصة</th>
+                `;
+                
+                for (let i = 1; i <= periods; i++) {
+                    html += `<th>الحصة ${i}</th>`;
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                days.forEach(day => {
+                    html += `<tr><td><strong>${day}</strong></td>`;
+                    
+                    for (let i = 0; i < periods; i++) {
+                        const slot = teacherSchedule.schedule[day][i];
+                        html += `<td>${slot.subject ? `${slot.subject}<br><small>${slot.class}</small>` : '-'}</td>`;
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في تحميل جدول المعلم:", error);
+            }
+        }
+
+        // تحميل الجدول العام للمعلمين
+        async function loadTeachersSchedule() {
+            try {
+                const staff = await Database.getStaff();
+                const schedules = await Database.getSchedules();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
+                const container = document.getElementById("teachersSchedule");
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <table class="schedule-table">
+                        <thead>
+                            <tr>
+                                <th>اسم المعلم</th>
+                `;
+                
+                // رؤوس الحصص لكل يوم
+                for (let day of days) {
+                    html += `<th colspan="${periods}">${day}</th>`;
+                }
+                
+                html += `</tr><tr><th></th>`;
+                
+                // رؤوس الحصص
+                for (let day = 0; day < 5; day++) {
+                    for (let i = 1; i <= periods; i++) {
+                        html += `<th>${i}</th>`;
+                    }
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                // بيانات المعلمين
+                teachers.forEach(teacher => {
+                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
+                    
+                    html += `<tr><td class="teacher-name">${teacher.name}</td>`;
+                    
+                    // لكل يوم من الأيام
+                    for (let day of days) {
+                        // لكل حصة في اليوم
+                        for (let period = 0; period < periods; period++) {
+                            let slotContent = '-';
+                            
+                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
+                                const slot = teacherSchedule.schedule[day][period];
+                                if (slot.subject && slot.class) {
+                                    slotContent = `${slot.subject}<br><small>${slot.class}</small>`;
+                                }
+                            }
+                            
+                            html += `<td>${slotContent}</td>`;
+                        }
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                container.innerHTML = html;
+            } catch (error) {
+                console.error("خطأ في تحميل الجدول العام:", error);
+            }
+        }
+
+        // ========== دوال جدول توقيت الدوام ==========
+
+        // تحميل معلومات توقيت الدوام والحصص
+        async function showAllWorkSchedules() {
+            try {
+                const workSchedules = await Database.getWorkSchedules();
+                const container = document.getElementById("workScheduleInfo");
+                
+                let html = '';
+                
+                // عرض جميع أنواع التوقيت
+                for (const [timeType, schedule] of Object.entries(workSchedules)) {
+                    if (schedule && schedule.length > 0) {
+                        html += `
+                            <div class="time-type-badge">
+                                <i class="fas fa-clock"></i>
+                                ${getTimeTypeName(timeType)}
+                            </div>
+                            <div class="table-container">
+                                <table class="work-schedule-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40%;">الفعالية</th>
+                                            <th style="width: 30%;">البداية</th>
+                                            <th style="width: 30%;">النهاية</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${schedule.map(row => `
+                                            <tr>
+                                                <td>${row.activity || '-'}</td>
+                                                <td>${formatTimeForDisplay(row.start)}</td>
+                                                <td>${formatTimeForDisplay(row.end)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <br>
+                        `;
+                    }
+                }
+                
+                if (html === '') {
+                    html = '<p style="text-align: center; padding: 20px; color: #666;">لا يوجد توقيت دوام مضاف حالياً</p>';
+                }
+                
+                container.innerHTML = html;
+                
+            } catch (error) {
+                console.error("خطأ:", error);
+            }
+        }
+
+        // تنسيق الوقت للعرض
+        function formatTimeForDisplay(timeString) {
+            if (!timeString) return '-';
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours);
+            const minute = parseInt(minutes);
+            
+            const period = hour >= 12 ? 'م' : 'ص';
+            const displayHour = hour > 12 ? hour - 12 : hour;
+            
+            return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
+        }
+
+        // الحصول على اسم نوع التوقيت
+        function getTimeTypeName(timeType) {
+            const names = {
+                "summer": "التوقيت الصيفي",
+                "winter": "التوقيت الشتوي", 
+                "ramadan": "توقيت شهر رمضان المبارك"
+            };
+            return names[timeType] || "التوقيت الحالي";
+        }
+
+        // طباعة الجدول الدراسي
+        function printSchedule() {
+            const scheduleContent = document.getElementById("teacherSchedule").innerHTML;
+            const printWindow = window.open('', '_blank');
+            
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html dir="rtl" lang="ar">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>جدولي الدراسي</title>
+                    <style>
+                        body { 
+                            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                            margin: 20px; 
+                            direction: rtl;
+                        }
+                        table { 
+                            width: 100%; 
+                            border-collapse: collapse; 
+                        }
+                        th, td { 
+                            padding: 10px; 
+                            text-align: center; 
+                            border: 1px solid #ddd; 
+                        }
+                        th { 
+                            background-color: #2c5aa0; 
+                            color: white; 
+                        }
+                        @media print {
+                            body { margin: 0; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2 style="text-align: center; color: #2c5aa0;">جدولي الدراسي</h2>
+                    ${scheduleContent}
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // طباعة الجدول العام للمعلمين بشكل أفقي
+        async function printTeachersSchedule() {
+            try {
+                const staff = await Database.getStaff();
+                const schedules = await Database.getSchedules();
+                const teachers = staff.filter(s => s.jobs && s.jobs.includes("معلم"));
+                
+                const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+                const periods = 7;
+                
+                let html = `
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead>
+                            <tr>
+                                <th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;">اليوم/الحصة</th>
+                `;
+                
+                // رؤوس أيام الأسبوع
+                for (let day of days) {
+                    html += `<th style="border: 1px solid #ddd; padding: 8px; background: #2c5aa0; color: white;" colspan="${periods}">${day}</th>`;
+                }
+                
+                html += `</tr><tr><th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;"></th>`;
+                
+                // رؤوس الحصص لكل يوم
+                for (let day = 0; day < 5; day++) {
+                    for (let i = 1; i <= periods; i++) {
+                        html += `<th style="border: 1px solid #ddd; padding: 8px; background: #1e3d72; color: white;">${i}</th>`;
+                    }
+                }
+                
+                html += `</tr></thead><tbody>`;
+                
+                // بيانات المعلمين بشكل أفقي (كل معلم في صف)
+                teachers.forEach(teacher => {
+                    const teacherSchedule = schedules.find(s => s.teacher_id === teacher.id);
+                    
+                    html += `<tr>
+                        <td style="border: 1px solid #ddd; padding: 8px; background: #f8f9fa; font-weight: bold; text-align: right;">${teacher.name}</td>`;
+                    
+                    // لكل يوم من الأيام
+                    for (let day of days) {
+                        // لكل حصة في اليوم
+                        for (let period = 0; period < periods; period++) {
+                            let slotContent = '-';
+                            
+                            if (teacherSchedule && teacherSchedule.schedule[day] && teacherSchedule.schedule[day][period]) {
+                                const slot = teacherSchedule.schedule[day][period];
+                                if (slot.subject && slot.class) {
+                                    slotContent = `${slot.subject}<br><small>${slot.class}</small>`;
+                                }
+                            }
+                            
+                            html += `<td style="border: 1px solid #ddd; padding: 6px; text-align: center;">${slotContent}</td>`;
+                        }
+                    }
+                    
+                    html += `</tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html dir="rtl" lang="ar">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>الجدول العام للمعلمين</title>
+                        <style>
+                            @media print {
+                                @page {
+                                    size: landscape;
+                                    margin: 10mm;
+                                }
+                                body { 
+                                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                    margin: 0;
+                                    direction: rtl;
+                                }
+                                table { 
+                                    width: 100%; 
+                                    border-collapse: collapse; 
+                                    font-size: 10px;
+                                }
+                                th, td { 
+                                    border: 1px solid #ddd; 
+                                    padding: 4px; 
+                                    text-align: center; 
+                                }
+                                th { 
+                                    background-color: #2c5aa0; 
+                                    color: white; 
+                                }
+                            }
+                            body { 
+                                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+                                margin: 20px; 
+                                direction: rtl;
+                            }
+                            h2 { 
+                                text-align: center; 
+                                color: #2c5aa0; 
+                                margin-bottom: 15px;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <h2>الجدول العام للمعلمين - مدرسة عمرو بن العاص</h2>
+                        ${html}
+                    </body>
+                    </html>
+                `);
+                
+                printWindow.document.close();
+                printWindow.print();
+            } catch (error) {
+                console.error("خطأ في طباعة الجدول العام:", error);
+            }
+        }
+
+        // عرض اسم المستخدم
+        function displayUserName() {
+            const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+            const staffNameElement = document.getElementById("staffUserName");
+            
+            if (currentStaff && staffNameElement) {
+                staffNameElement.textContent = currentStaff.name;
+            }
+        }
+
+        // تهيئة التطبيق
+        document.addEventListener("DOMContentLoaded", async function() {
+            if (localStorage.getItem("role") !== "staff") {
+                window.location.href = "index.html";
+                return;
+            }
+            
+            try {
+                // تحميل حالة الاطلاع من قاعدة البيانات
+                fileReadStatus = await Database.getFileReadStatus();
+            } catch (error) {
+                console.error("خطأ في تحميل حالة الاطلاع:", error);
+            }
+            
+            displayUserName();
+            await checkNewFiles();
+        });
+    </script>
+</body>
+</html>
