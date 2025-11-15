@@ -1,4 +1,4 @@
-// supabase.js - مع دعم التخزين الفعلي للملفات
+// supabase.js - مع دعم التخزين الفعلي للملفات (محدث)
 const SUPABASE_URL = 'https://bcjhxjelaqirormcflms.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjamh4amVsYXFpcm9ybWNmbG1zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI5MzkzNTMsImV4cCI6MjA3ODUxNTM1M30.aDJ-dR70zJEQJYoUc2boZOtoJevEtPRj_UFAMlEwZpc';
 
@@ -55,14 +55,6 @@ const Database = {
         return { data, error };
     },
 
-    async updateFile(id, updates) {
-        const { data, error } = await supabase
-            .from('files')
-            .update(updates)
-            .eq('id', id);
-        return { data, error };
-    },
-
     async deleteFile(id) {
         const { data, error } = await supabase
             .from('files')
@@ -79,17 +71,29 @@ const Database = {
             const uniqueFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `${folder}/${uniqueFileName}`;
 
+            console.log('بدء رفع الملف:', fileName, 'المسار:', filePath);
+
             // رفع الملف إلى التخزين
             const { data, error } = await supabase.storage
                 .from('files')
-                .upload(filePath, file);
+                .upload(filePath, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
-            if (error) throw error;
+            if (error) {
+                console.error('خطأ في رفع الملف:', error);
+                throw error;
+            }
+
+            console.log('تم رفع الملف بنجاح:', data);
 
             // الحصول على رابط التحميل
             const { data: urlData } = supabase.storage
                 .from('files')
                 .getPublicUrl(filePath);
+
+            console.log('رابط الملف العام:', urlData);
 
             return {
                 success: true,
@@ -143,20 +147,6 @@ const Database = {
             return { success: true };
         } catch (error) {
             console.error('خطأ في حذف الملف:', error);
-            return { success: false, error: error.message };
-        }
-    },
-
-    async listStorageFiles(folder = 'school-files') {
-        try {
-            const { data, error } = await supabase.storage
-                .from('files')
-                .list(folder);
-            
-            if (error) throw error;
-            return { success: true, files: data };
-        } catch (error) {
-            console.error('خطأ في عرض الملفات:', error);
             return { success: false, error: error.message };
         }
     },
@@ -259,75 +249,6 @@ const Database = {
         return { data, error };
     },
 
-    // دالة للحصول على تقرير الملفات غير المقروءة
-    async getUnreadFiles(staffId) {
-        try {
-            // الحصول على جميع الملفات الموجهة للموظف
-            const files = await this.getFiles();
-            const readStatus = await this.getFileReadStatus();
-            
-            const unreadFiles = files.filter(file => {
-                // التحقق إذا كان الملف موجه للموظف
-                const isTargeted = file.target_staff?.includes(staffId) ||
-                                 (file.target_subjects && file.target_subjects.length > 0) ||
-                                 (file.target_classes && file.target_classes.length > 0);
-                
-                if (!isTargeted) return false;
-                
-                // التحقق إذا كان الملف مقروءاً
-                const isRead = readStatus[file.id] && readStatus[file.id][staffId]?.read;
-                return !isRead;
-            });
-            
-            return unreadFiles;
-        } catch (error) {
-            console.error('خطأ في الحصول على الملفات غير المقروءة:', error);
-            return [];
-        }
-    },
-
-    // دالة للحصول على إحصائيات الملفات
-    async getFileStats() {
-        try {
-            const files = await this.getFiles();
-            const readStatus = await this.getFileReadStatus();
-            
-            let totalFiles = files.length;
-            let totalRead = 0;
-            let totalDownloads = 0;
-            let totalSize = 0;
-            
-            files.forEach(file => {
-                totalSize += file.file_size || 0;
-                
-                // حساب عدد مرات القراءة والتحميل
-                if (readStatus[file.id]) {
-                    Object.values(readStatus[file.id]).forEach(status => {
-                        if (status.read) totalRead++;
-                        if (status.downloaded) totalDownloads++;
-                    });
-                }
-            });
-            
-            return {
-                totalFiles,
-                totalRead,
-                totalDownloads,
-                totalSize: (totalSize / 1024 / 1024).toFixed(2) + ' MB',
-                averageReadPerFile: totalFiles > 0 ? (totalRead / totalFiles).toFixed(1) : 0
-            };
-        } catch (error) {
-            console.error('خطأ في الحصول على إحصائيات الملفات:', error);
-            return {
-                totalFiles: 0,
-                totalRead: 0,
-                totalDownloads: 0,
-                totalSize: '0 MB',
-                averageReadPerFile: 0
-            };
-        }
-    },
-
     formatFileReadStatus(data) {
         const status = {};
         if (data) {
@@ -368,57 +289,12 @@ const Database = {
                 error: error.message
             };
         }
-    },
-
-    // دالة لتنظيف الملفات المرفوعة بدون سجلات
-    async cleanupOrphanedFiles() {
-        try {
-            const files = await this.getFiles();
-            const storageResult = await this.listStorageFiles();
-            
-            if (!storageResult.success) {
-                return { success: false, error: storageResult.error };
-            }
-            
-            const dbFilePaths = files.map(f => f.file_path).filter(Boolean);
-            const storageFiles = storageResult.files;
-            
-            const orphanedFiles = storageFiles.filter(storageFile => 
-                !dbFilePaths.includes(`school-files/${storageFile.name}`)
-            );
-            
-            let deletedCount = 0;
-            for (const file of orphanedFiles) {
-                const deleteResult = await this.deleteStorageFile(`school-files/${file.name}`);
-                if (deleteResult.success) {
-                    deletedCount++;
-                }
-            }
-            
-            return {
-                success: true,
-                deletedCount: deletedCount,
-                totalOrphaned: orphanedFiles.length
-            };
-        } catch (error) {
-            console.error('خطأ في تنظيف الملفات:', error);
-            return { success: false, error: error.message };
-        }
     }
 };
 
 // تصدير الكائن للاستخدام في الملفات الأخرى
 window.Database = Database;
 
-// تهيئة التخزين عند التحميل
-document.addEventListener('DOMContentLoaded', async function() {
-    console.log('تم تحميل Supabase Database بنجاح');
-    
-    // التحقق من الاتصال
-    const connection = await Database.checkConnection();
-    if (connection.connected) {
-        console.log('✅ الاتصال بقاعدة البيانات ناجح');
-    } else {
-        console.error('❌ فشل الاتصال بقاعدة البيانات:', connection.error);
-    }
-});
+// التحقق من التحميل
+console.log('✅ Supabase.js loaded successfully');
+console.log('📁 Database object:', typeof Database !== 'undefined' ? 'Loaded' : 'Not Loaded');
