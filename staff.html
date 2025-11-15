@@ -392,7 +392,7 @@
             border-radius: var(--border-radius);
             padding: 30px;
             width: 90%;
-            max-width: 600px;
+            max-width: 800px;
             box-shadow: var(--shadow-lg);
             max-height: 90vh;
             overflow-y: auto;
@@ -530,6 +530,38 @@
             display: inline-block;
         }
 
+        /* نمط الملف في النافذة المنبثقة */
+        .file-modal-item {
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            background: var(--light);
+        }
+
+        .file-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .file-modal-content {
+            background: white;
+            border: 1px solid var(--gray-light);
+            border-radius: var(--border-radius);
+            padding: 15px;
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .file-modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
         /* التجاوب */
         @media (max-width: 1024px) {
             .sidebar {
@@ -631,16 +663,33 @@
     <div id="newFilesModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>الملفات الجديدة المرسلة لك</h3>
+                <h3><i class="fas fa-bell"></i> الملفات الجديدة المرسلة لك</h3>
             </div>
             <div class="modal-body">
-                <p>يوجد لديك ملفات جديدة تحتاج إلى الاطلاع عليها. يرجى الاطلاع على الملفات التالية:</p>
-                <div id="newFilesList" style="margin-top: 15px; max-height: 300px; overflow-y: auto;"></div>
+                <p>يوجد لديك ملفات جديدة تحتاج إلى الاطلاع عليها. يرجى الاطلاع على جميع الملفات أدناه:</p>
+                <div id="newFilesList" style="margin-top: 15px; max-height: 400px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة مشاهدة محتوى الملف -->
+    <div id="fileContentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="fileContentTitle"><i class="fas fa-file"></i> محتوى الملف</h3>
+                <button class="close-modal" onclick="closeFileContentModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="fileContentDisplay" class="file-modal-content">
+                    <!-- سيتم ملؤها بمحتوى الملف -->
+                </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" onclick="acknowledgeNewFiles()">
+                <button class="btn btn-primary" onclick="closeFileContentModal()">
                     <i class="fas fa-check"></i>
-                    تم الاطلاع على جميع الملفات
+                    تم الاطلاع
                 </button>
             </div>
         </div>
@@ -775,6 +824,7 @@
         let newFiles = [];
         let viewedFiles = JSON.parse(localStorage.getItem("viewedFiles")) || [];
         let fileReadStatus = {};
+        let currentViewingFileIndex = 0;
 
         // تسجيل الخروج
         function logout() {
@@ -843,45 +893,103 @@
         // عرض نافذة الملفات الجديدة
         function showNewFilesModal() {
             const newFilesList = document.getElementById("newFilesList");
-            newFilesList.innerHTML = newFiles.map(file => `
-                <div class="file-item">
-                    <div>
-                        <strong>${file.title}</strong>
-                        <div style="font-size: 12px; color: #666; margin-top: 4px;">
-                            ${file.category} - ${file.date}
+            newFilesList.innerHTML = newFiles.map((file, index) => `
+                <div class="file-modal-item">
+                    <div class="file-modal-header">
+                        <div>
+                            <strong>${file.title}</strong>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                                ${file.category} - ${file.date}
+                            </div>
+                            ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${file.note}</div>` : ''}
                         </div>
-                        ${file.note ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${file.note}</div>` : ''}
+                        <button class="btn btn-primary btn-sm" onclick="viewNewFileContent(${index})">
+                            <i class="fas fa-eye"></i>
+                            مشاهدة المحتوى
+                        </button>
                     </div>
                 </div>
             `).join('');
             
             document.getElementById("newFilesModal").classList.add("active");
+            
+            // منع إغلاق النافذة
+            document.getElementById("newFilesModal").style.pointerEvents = 'auto';
         }
 
-        // تأكيد الاطلاع على الملفات الجديدة
-        async function acknowledgeNewFiles() {
+        // مشاهدة محتوى ملف جديد
+        async function viewNewFileContent(fileIndex) {
+            const file = newFiles[fileIndex];
+            currentViewingFileIndex = fileIndex;
+            
+            // عرض محتوى الملف
+            document.getElementById("fileContentTitle").textContent = file.title;
+            
+            // محاكاة محتوى الملف (في تطبيق حقيقي سيتم جلب المحتوى الفعلي)
+            const fileContent = `
+                <h4>${file.title}</h4>
+                <p><strong>التصنيف:</strong> ${file.category}</p>
+                <p><strong>التاريخ:</strong> ${file.date}</p>
+                ${file.note ? `<p><strong>ملاحظات:</strong> ${file.note}</p>` : ''}
+                <hr>
+                <div style="margin-top: 20px;">
+                    <p>هذا هو محتوى الملف "${file.title}". في التطبيق الحقيقي، سيتم عرض المحتوى الفعلي للملف هنا.</p>
+                    <p>يمكن أن يتضمن المحتوى نصوصًا، صورًا، جداول، أو أي نوع آخر من المحتوى حسب نوع الملف.</p>
+                </div>
+            `;
+            
+            document.getElementById("fileContentDisplay").innerHTML = fileContent;
+            document.getElementById("fileContentModal").classList.add("active");
+        }
+
+        // إغلاق نافذة محتوى الملف
+        async function closeFileContentModal() {
+            const file = newFiles[currentViewingFileIndex];
+            
+            // تسجيل الاطلاع على الملف
+            await markFileAsViewed(file.id);
+            
+            // إزالة الملف من قائمة الملفات الجديدة
+            newFiles.splice(currentViewingFileIndex, 1);
+            
+            // إغلاق النافذة
+            document.getElementById("fileContentModal").classList.remove("active");
+            
+            // إذا لم يتبقى ملفات جديدة، إغلاق النافذة الرئيسية
+            if (newFiles.length === 0) {
+                document.getElementById("newFilesModal").classList.remove("active");
+                await initializeStaffInterface();
+            } else {
+                // تحديث قائمة الملفات الجديدة
+                showNewFilesModal();
+            }
+        }
+
+        // تسجيل الملف كمشاهد
+        async function markFileAsViewed(fileId) {
             try {
                 const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
                 const currentTime = new Date().toISOString();
                 
-                for (const file of newFiles) {
-                    if (!viewedFiles.includes(file.id)) {
-                        viewedFiles.push(file.id);
-                    }
-                    
-                    // تسجيل حالة الاطلاع في قاعدة البيانات
-                    await Database.updateFileReadStatus(file.id, currentStaff.id, {
-                        read: true,
-                        read_date: currentTime,
-                        staff_name: currentStaff.name
-                    });
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
                 }
                 
-                localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                document.getElementById("newFilesModal").classList.remove("active");
-                await initializeStaffInterface();
+                // تسجيل حالة الاطلاع في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name,
+                    read_count: 1
+                });
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
             } catch (error) {
-                console.error("خطأ في تأكيد الاطلاع:", error);
+                console.error("خطأ في تسجيل الاطلاع:", error);
             }
         }
 
@@ -892,7 +1000,7 @@
             await loadEvents();
             await loadTeacherSchedule();
             await loadTeachersSchedule();
-            await loadWorkScheduleInfo();
+            await showAllWorkSchedules();
             
             // إظهار قسم الملفات افتراضيًا بشكل آمن
             setTimeout(() => {
@@ -1040,7 +1148,7 @@
                                                     تحميل
                                                 </button>
                                             ` : ''}
-                                            <button class="btn btn-outline btn-sm" onclick="viewFile('${file.id}')">
+                                            <button class="btn btn-primary btn-sm" onclick="viewFileContent('${file.id}')">
                                                 <i class="fas fa-eye"></i>
                                                 ${isViewed ? 'معاينة' : 'مشاهدة'}
                                             </button>
@@ -1098,7 +1206,7 @@
                                                         تحميل
                                                     </button>
                                                 ` : ''}
-                                                <button class="btn btn-outline btn-sm" onclick="viewFile('${file.id}')">
+                                                <button class="btn btn-primary btn-sm" onclick="viewFileContent('${file.id}')">
                                                     <i class="fas fa-eye"></i>
                                                     ${isViewed ? 'معاينة' : 'مشاهدة'}
                                                 </button>
@@ -1114,6 +1222,87 @@
                 console.error("خطأ في تحميل الملفات:", error);
             }
         }
+
+        // مشاهدة محتوى الملف من القائمة
+        async function viewFileContent(fileId) {
+            try {
+                const userFiles = await loadUserFiles();
+                const file = userFiles.find(f => f.id === fileId);
+                
+                if (!file) return;
+                
+                // عرض محتوى الملف
+                document.getElementById("fileContentTitle").textContent = file.title;
+                
+                // محاكاة محتوى الملف
+                const fileContent = `
+                    <h4>${file.title}</h4>
+                    <p><strong>التصنيف:</strong> ${file.category}</p>
+                    <p><strong>التاريخ:</strong> ${file.date}</p>
+                    ${file.note ? `<p><strong>ملاحظات:</strong> ${file.note}</p>` : ''}
+                    <hr>
+                    <div style="margin-top: 20px;">
+                        <p>هذا هو محتوى الملف "${file.title}". في التطبيق الحقيقي، سيتم عرض المحتوى الفعلي للملف هنا.</p>
+                        <p>يمكن أن يتضمن المحتوى نصوصًا، صورًا، جداول، أو أي نوع آخر من المحتوى حسب نوع الملف.</p>
+                    </div>
+                `;
+                
+                document.getElementById("fileContentDisplay").innerHTML = fileContent;
+                document.getElementById("fileContentModal").classList.add("active");
+                
+                // تسجيل الاطلاع إذا كان الملف جديدًا
+                if (!viewedFiles.includes(fileId)) {
+                    await markFileAsViewed(fileId);
+                    await loadCategoriesNav();
+                    await loadFiles();
+                }
+                
+            } catch (error) {
+                console.error("خطأ في مشاهدة الملف:", error);
+            }
+        }
+
+        // تحميل الملف
+        async function downloadFile(fileId) {
+            try {
+                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
+                const currentTime = new Date().toISOString();
+                const userFiles = await loadUserFiles();
+                const file = userFiles.find(f => f.id === fileId);
+                
+                if (!file) return;
+                
+                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
+                if (!viewedFiles.includes(fileId)) {
+                    viewedFiles.push(fileId);
+                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
+                }
+                
+                // تسجيل حالة الاطلاع والتحميل في قاعدة البيانات
+                await Database.updateFileReadStatus(fileId, currentStaff.id, {
+                    read: true,
+                    read_date: currentTime,
+                    staff_name: currentStaff.name,
+                    downloaded: true,
+                    download_date: currentTime,
+                    download_count: 1
+                });
+                
+                // تحديث الشريط الجانبي
+                await loadCategoriesNav();
+                
+                // محاكاة عملية التحميل
+                alert(`يتم الآن تحميل الملف: ${file.title}`);
+                
+                // في تطبيق حقيقي، هنا سيتم تحميل الملف الفعلي
+                console.log(`تحميل الملف: ${file.title}`);
+                
+            } catch (error) {
+                console.error("خطأ في تحميل الملف:", error);
+            }
+        }
+
+        // ========== باقي الدوال تبقى كما هي ==========
 
         // تحميل الأحداث
         async function loadEvents() {
@@ -1280,85 +1469,6 @@
         // ========== دوال جدول توقيت الدوام ==========
 
         // تحميل معلومات توقيت الدوام والحصص
-        async function loadWorkScheduleInfo() {
-            try {
-                const workSchedules = await Database.getWorkSchedules();
-                const currentDate = new Date();
-                const currentMonth = currentDate.getMonth() + 1;
-                
-                // تحديد نوع التوقيت بناءً على الشهر الحالي
-                let timeType = "summer"; // افتراضي
-                if (currentMonth >= 4 && currentMonth <= 10) {
-                    timeType = "summer"; // الصيفي
-                } else if (currentMonth === 9) { // رمضان (افتراضيًا)
-                    timeType = "ramadan";
-                } else {
-                    timeType = "winter"; // الشتوي
-                }
-                
-                const currentSchedule = workSchedules[timeType] || [];
-                const container = document.getElementById("workScheduleInfo");
-                
-                if (currentSchedule.length === 0) {
-                    container.innerHTML = '<p>لا يوجد توقيت دوام مضاف حالياً</p>';
-                    return;
-                }
-                
-                container.innerHTML = `
-                    <div class="time-type-badge">
-                        <i class="fas fa-clock"></i>
-                        ${getTimeTypeName(timeType)}
-                    </div>
-                    <div class="table-container">
-                        <table class="work-schedule-table">
-                            <thead>
-                                <tr>
-                                    <th style="width: 40%;">الفعالية</th>
-                                    <th style="width: 30%;">البداية</th>
-                                    <th style="width: 30%;">النهاية</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${currentSchedule.map(row => `
-                                    <tr>
-                                        <td>${row.activity}</td>
-                                        <td>${formatTimeForDisplay(row.start)}</td>
-                                        <td>${formatTimeForDisplay(row.end)}</td>
-                                    </tr>
-                                `).join('')}
-                            </tbody>
-                        </table>
-                    </div>
-                `;
-            } catch (error) {
-                console.error("خطأ في تحميل جدول التوقيت:", error);
-            }
-        }
-
-        // تنسيق الوقت للعرض
-        function formatTimeForDisplay(timeString) {
-            if (!timeString) return '-';
-            const [hours, minutes] = timeString.split(':');
-            const hour = parseInt(hours);
-            const minute = parseInt(minutes);
-            
-            const period = hour >= 12 ? 'م' : 'ص';
-            const displayHour = hour > 12 ? hour - 12 : hour;
-            
-            return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
-        }
-
-        // الحصول على اسم نوع التوقيت
-        function getTimeTypeName(timeType) {
-            const names = {
-                "summer": "التوقيت الصيفي",
-                "winter": "التوقيت الشتوي", 
-                "ramadan": "توقيت شهر رمضان المبارك"
-            };
-            return names[timeType] || "التوقيت الحالي";
-        }
-
-        // حل بديل: عرض جميع جداول التوقيت
         async function showAllWorkSchedules() {
             try {
                 const workSchedules = await Database.getWorkSchedules();
@@ -1410,63 +1520,27 @@
             }
         }
 
-        // مشاهدة الملف
-        async function viewFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم فتح الملف للمشاهدة
-                alert("تم تسجيل الاطلاع على الملف. في التطبيق الحقيقي، سيتم فتح الملف في نافذة جديدة أو في نفس الصفحة.");
-            } catch (error) {
-                console.error("خطأ في مشاهدة الملف:", error);
-            }
+        // تنسيق الوقت للعرض
+        function formatTimeForDisplay(timeString) {
+            if (!timeString) return '-';
+            const [hours, minutes] = timeString.split(':');
+            const hour = parseInt(hours);
+            const minute = parseInt(minutes);
+            
+            const period = hour >= 12 ? 'م' : 'ص';
+            const displayHour = hour > 12 ? hour - 12 : hour;
+            
+            return `${displayHour}:${minute.toString().padStart(2, '0')} ${period}`;
         }
 
-        // تحميل الملف
-        async function downloadFile(fileId) {
-            try {
-                const currentStaff = JSON.parse(localStorage.getItem("currentStaff"));
-                const currentTime = new Date().toISOString();
-                
-                // إضافة الملف إلى قائمة الملفات التي تم الاطلاع عليها
-                if (!viewedFiles.includes(fileId)) {
-                    viewedFiles.push(fileId);
-                    localStorage.setItem("viewedFiles", JSON.stringify(viewedFiles));
-                }
-                
-                // تسجيل حالة الاطلاع في قاعدة البيانات
-                await Database.updateFileReadStatus(fileId, currentStaff.id, {
-                    read: true,
-                    read_date: currentTime,
-                    staff_name: currentStaff.name,
-                    downloaded: true
-                });
-                
-                // تحديث الشريط الجانبي
-                await loadCategoriesNav();
-                
-                // في تطبيق حقيقي، هنا سيتم تحميل الملف
-                alert("يتم الآن تحميل الملف. في التطبيق الحقيقي، سيبدأ تحميل الملف.");
-            } catch (error) {
-                console.error("خطأ في تحميل الملف:", error);
-            }
+        // الحصول على اسم نوع التوقيت
+        function getTimeTypeName(timeType) {
+            const names = {
+                "summer": "التوقيت الصيفي",
+                "winter": "التوقيت الشتوي", 
+                "ramadan": "توقيت شهر رمضان المبارك"
+            };
+            return names[timeType] || "التوقيت الحالي";
         }
 
         // طباعة الجدول الدراسي
@@ -1663,20 +1737,6 @@
             displayUserName();
             await checkNewFiles();
         });
-
-        // استبدال السطر في initializeStaffInterface بهذا:
-        async function initializeStaffInterface() {
-            await loadCategoriesNav();
-            await loadFiles();
-            await loadEvents();
-            await loadTeacherSchedule();
-            await loadTeachersSchedule();
-            await showAllWorkSchedules(); // بدل loadWorkScheduleInfo
-            
-            setTimeout(() => {
-                showSection('files');
-            }, 100);
-        }
     </script>
 </body>
 </html>
