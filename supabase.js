@@ -164,7 +164,8 @@ const Database = {
                 read: item.read,
                 read_date: item.read_date,
                 staff_name: item.staff_name,
-                downloaded: item.downloaded
+                downloaded: item.downloaded,
+                previewed: item.previewed
             };
         });
         return status;
